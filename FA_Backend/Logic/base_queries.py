@@ -1,3 +1,5 @@
+from typing import Tuple, Any
+
 import pandas as pd
 from FA_Backend.Models.models import od_dq_base
 from sqlalchemy import Select, func, extract
@@ -5,37 +7,38 @@ from datetime import date
 from FA_Backend.Models.models import engine
 import os
 
+
 def check_envs(env_vars):
-	for var in env_vars:
-		if var not in os.environ:
-			raise KeyError(f"Environment variable '{var}' is not loaded.")
+    for var in env_vars:
+        if var not in os.environ:
+            raise KeyError(f"Environment variable '{var}' is not loaded.")
 
 
 def run_stmt(to_run, cnt=0):
-	stmt = (
-		to_run
-	)
-	with engine.connect() as conn:
-		if cnt > 0:
-			result = conn.execute(stmt).fetchmany(cnt)
-		else:
-			result = conn.execute(stmt).fetchall()
-	return result
+    stmt = (
+        to_run
+    )
+    with engine.connect() as conn:
+        if cnt > 0:
+            result = conn.execute(stmt).fetchmany(cnt)
+        else:
+            result = conn.execute(stmt).fetchall()
+    return result
 
 
 if __name__ == "__main__":
-	required_env_vars = ["POSTGRES_HOST", "POSTGRES_PORT",
-						 "POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB",
-						 "POSTGRES_SCHEMA", "OD_DQ_TABLE"]
-	try:
-		check_envs(required_env_vars)
-		print("All required environment variables are loaded.")
-	except KeyError as e:
-		print(f"Error: {e}")
+    required_env_vars = ["POSTGRES_HOST", "POSTGRES_PORT",
+                         "POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB",
+                         "POSTGRES_SCHEMA", "OD_DQ_TABLE"]
+    try:
+        check_envs(required_env_vars)
+        print("All required environment variables are loaded.")
+    except KeyError as e:
+        print(f"Error: {e}")
 
-	engine.dispose()
- 
- 
+    engine.dispose()
+
+
 def get_date_range():
     date_range = (
         Select(func.min(od_dq_base.c.ord_date), func.max(od_dq_base.c.ord_date))
@@ -60,7 +63,7 @@ def load_cancelled_orders(dt_val: date, total=0):
     return run_stmt(cancelled, total)
 
 
-def load_missing_pc(dt_val: str, col_name: str, total=0, delta = False) -> list[str]:
+def load_missing_pc(dt_val: str, col_name: str, total=0, delta=False) -> list[str]:
     # if delta
     col_ = getattr(od_dq_base.c, col_name)
     missing_col = (
@@ -95,7 +98,7 @@ def get_sellers(dt_val: str) -> list[str]:
     return run_stmt(sellers)
 
 
-def get_per_col(dt_val: str) -> list[pd.DataFrame]:
+def get_per_col(dt_val: str) -> tuple[Any, Any]:
     all_data = (
         Select(od_dq_base)
         .where(od_dq_base.c.ord_date == dt_val)
