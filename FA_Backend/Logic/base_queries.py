@@ -1,11 +1,15 @@
-from typing import Tuple, Any
-
 import pandas as pd
-from FA_Backend.Models.models import od_dq_base
+
+from typing import Tuple, Any
 from sqlalchemy import Select, func, extract
 from datetime import date
-from FA_Backend.Models.models import engine
 import os
+import sys
+
+sys.path.insert(0,  "../Models")
+
+from Models.models import engine
+from Models.models import od_dq_base
 
 
 def check_envs(env_vars):
@@ -27,9 +31,9 @@ def run_stmt(to_run, cnt=0):
 
 
 if __name__ == "__main__":
-    required_env_vars = ["POSTGRES_HOST", "POSTGRES_PORT",
-                         "POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB",
-                         "POSTGRES_SCHEMA", "OD_DQ_TABLE"]
+    required_env_vars = ["PG_USER", "PG_PWD",
+                         "PG_HOST", "PG_PORT", "PG_DB",
+                         "PG_SCHEMA", "DQ_TBL", "AGG_VIEW", "AGG_SUM"]
     try:
         check_envs(required_env_vars)
         print("All required environment variables are loaded.")
@@ -46,9 +50,6 @@ def get_date_range():
     dt_rng = run_stmt(date_range)[0]
     return dt_rng[0], dt_rng[1]
 
-
-# min_ord_date = get_date_range()[0]
-# max_ord_date = get_date_range()[1]
 
 def load_cancelled_orders(dt_val: date, total=0):
     cancelled = (

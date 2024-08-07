@@ -1,26 +1,25 @@
-import pandas as pd
+import sys
 import os
-from datetime import date, datetime
-
+from sqlalchemy import Select, func
 from sqlalchemy.ext.asyncio import create_async_engine
-from sqlalchemy import Select, func, extract
-# import asyncpg 
 
-import env_vars as ev
-import FA_Backend.Models.models as mdl
-from FA_Backend.Models.models import od_dq_base
+sys.path.insert(0, "../")
 
+from Models.models import od_dq_base
+from Misc import env_vars as ev
 
-async_engine = create_async_engine(f"postgresql+asyncpg://{ev.db_user}:{ev.db_pwd}@{ev.db_host}:{ev.db_port}/{ev.db_instance}")
+async_engine = create_async_engine(
+    f"postgresql+asyncpg://{ev.PG_USER}:{ev.PG_PWD}@{ev.PG_HOST}:{ev.PG_PORT}/{ev.PG_DB}")
+
 
 async def check_envs(env_vars):
-	for var in env_vars:
-		if var not in os.environ:
-			raise KeyError(f"Environment variable '{var}' is not loaded.")
+    for var in env_vars:
+        if var not in os.environ:
+            raise KeyError(f"Environment variable '{var}' is not loaded.")
 
 
 async def run_stmt(to_run, cnt=0):
-    stmt = (to_run)
+    stmt = to_run
     async with async_engine.connect() as conn:
         if cnt > 0:
             try:
@@ -43,8 +42,7 @@ async def get_date_range():
     dt_rng = await run_stmt(date_range)
     return dt_rng
 
-
 # min_ord_date = get_date_range()[0]
 # max_ord_date = get_date_range()[1]
 
-# async def 
+# async def

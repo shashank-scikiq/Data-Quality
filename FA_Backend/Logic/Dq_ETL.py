@@ -1,3 +1,6 @@
+import os
+
+
 def write_dq_data():
     try:
         app_logger.info("Connecting to Athena to get Data Quality Report.")
@@ -45,13 +48,12 @@ def write_dq_data():
         app_logger.info("Written the data to db.")
         conn_tgt_pg.close()
         conn_src_athena.close()
-        
-        
+
+
 sel_dq_qry = """
-select
-	current_date as curr_date,
-	date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')) as ord_date,
-	"seller np name" AS seller_np,
+    select current_date as curr_date,
+    date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')) as ord_date,
+    "seller np name" AS seller_np,
     SUM(CASE WHEN "Fulfillment Id" IS NULL THEN 1 ELSE 0 END) AS null_fulfilment_id,
     SUM(CASE WHEN "Network Transaction Id" IS NULL THEN 1 ELSE 0 END) AS null_net_tran_id,
     SUM(CASE WHEN "Qty" IS NULL THEN 1 ELSE 0 END) AS null_qty,
@@ -76,10 +78,10 @@ select
     SUM(CASE WHEN "Order Status" = 'Cancelled' THEN 1 ELSE 0 END) AS total_canceled_orders
 FROM ATH_DB.ATH_TBL_B2C
 where
-	date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')) = current_date - interval '1' day
+    date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')) = current_date - interval '1' day
 GROUP BY
     date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')),
-	"seller np name";
+    "seller np name";
 """
 
 ins_dq_qry = """
