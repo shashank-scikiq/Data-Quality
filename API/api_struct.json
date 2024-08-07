@@ -1,0 +1,335 @@
+
+api/dq_report/top_card/
+[
+    {
+      title: "Total Orders",
+      count: "0.81%",
+      increased: true,
+      variancePercentage: "1.2%",
+      varianceText: "vs Yesterday"
+    },
+    {
+      title: "Total Cancellations",
+      count: "3,137",
+      increased: false,
+      variancePercentage: "0.7%",
+      varianceText: "vs. Yesterday"
+    },
+    {
+      title: "Orders Completed %",
+      count: "$306.20",
+      increased: false,
+      variancePercentage: "0.3%",
+      varianceText: "vs. Yesterday"
+    },
+    {
+      title: "Orders Cancelled %",
+      count: "1,650",
+      increased: false,
+      variancePercentage: "2.1%",
+      varianceText: "vs. Yesterday"
+    },
+  ]
+
+
+
+api/dq_report/radial_chart_data/
+[
+    {
+      title: 'Delivery City',
+      series: [3.1, 2.1]
+    }, {
+      title: 'Item Category',
+      series: [2.3, 2.2]
+    }, {
+      title: 'Consolidated Category',
+      series: [2.16, 2.06]
+    }, {
+      title: 'Seller Pincode',
+      series: [0.12, .30]
+    }, {
+      title: 'Seller City',
+      series: [0.040,0.029 ]
+    }, {
+      title: 'Provider Pincode',
+      series: [0.0060, 0.089]
+    },
+  ];
+
+
+api/dq_report/cancel_highest_missing_pid_data/
+[
+    {
+      id: "ondc-otipy.crofarm.com",
+      count: "0.81%",
+      increased: true,
+      variancePercentage: "1.2%",
+      varianceText: "vs. Yesterday"
+    },
+    {
+      id: "ondc-otipy.crofarm.com",
+      count: "0.81%",
+      increased: true,
+      variancePercentage: "1.2%",
+      varianceText: "vs. Yesterday"
+    },
+    {
+      id: "ondc-otipy.crofarm.com",
+      count: "0.81%",
+      increased: true,
+      variancePercentage: "1.2%",
+      varianceText: "vs. Yesterday"
+    }
+  ]
+
+
+api/dq_report/detail_cancel_table_data/
+[
+    {
+      "seller_np": "webapi.magicpin.in/oms_partner/ondc",
+      "null_itm_cat": 590,
+      "total_orders": 75689,
+    },
+    {
+      "seller_np": "webapi.magicpin.in/oms_partner/ondc",
+      "null_itm_cat": 590,
+      "total_orders": 75689,
+    },
+    {
+      "seller_np": "webapi.magicpin.in/oms_partner/ondc",
+      "null_itm_cat": 590,
+      "total_orders": 75689,
+    },
+    {
+      "seller_np": "webapi.magicpin.in/oms_partner/ondc",
+      "null_itm_cat": 590,
+      "total_orders": 75689,
+    },
+    {
+      "seller_np": "webapi.magicpin.in/oms_partner/ondc",
+      "null_itm_cat": 590,
+      "total_orders": 75689,
+    },
+  ]
+
+
+api/dq_report/detail_completed_table_data/
+[
+    {
+      "seller_np": "webapi.magicpin.in/oms_partner/ondc",
+      "null_itm_cat": 590,
+      "total_orders": 75689,
+    },
+    {
+      "seller_np": "webapi.magicpin.in/oms_partner/ondc",
+      "null_itm_cat": 590,
+      "total_orders": 75689,
+    },
+    {
+      "seller_np": "webapi.magicpin.in/oms_partner/ondc",
+      "null_itm_cat": 590,
+      "total_orders": 75689,
+    },
+    {
+      "seller_np": "webapi.magicpin.in/oms_partner/ondc",
+      "null_itm_cat": 590,
+      "total_orders": 75689,
+    },
+    {
+      "seller_np": "webapi.magicpin.in/oms_partner/ondc",
+      "null_itm_cat": 590,
+      "total_orders": 75689,
+    },
+  ];
+
+// Missing orders' Trend
+api/dq_report/trend_1/
+{
+    "title": "title 1",
+    "series": [
+      {
+        "name": "Bengaluru Urban",
+        "data": [
+          9323.0,
+          8519.0,
+          2850.0,
+          5634.0,
+          7109.0,
+          6971.0,
+          95128.0
+        ]
+      },
+      {
+        "name": "West Delhi",
+        "data": [
+          3526.0,
+          3337.0,
+          891.0,
+          2169.0,
+          943.0,
+          2024.0,
+          50588.0
+        ]
+      },
+      {
+        "name": "Hyderabad",
+        "data": [
+          2261.0,
+          2047.0,
+          859.0,
+          1332.0,
+          1359.0,
+          1740.0,
+          36857.0
+        ]
+      }
+    ],
+    "categories": [
+      "Nov-23",
+      "Dec-23",
+      "Jan-24",
+      "Feb-24",
+      "Mar-24",
+      "Apr-24",
+      "May-24"
+    ]
+  }
+
+
+  // Cancellation Trend.
+api/dq_report/trend_2/
+{
+    "title": "title 2",
+    "series": [
+      {
+        "name": "Bengaluru Urban",
+        "data": [
+          9323.0,
+          8519.0,
+          2850.0,
+          5634.0,
+          7109.0,
+          6971.0,
+          95128.0,
+          9323.0,
+          8519.0,
+          2850.0,
+          5634.0,
+          7109.0,
+          6971.0,
+          95128.0
+        ]
+      },
+      {
+        "name": "West Delhi",
+        "data": [
+          3526.0,
+          3337.0,
+          891.0,
+          2169.0,
+          943.0,
+          2024.0,
+          50588.0,
+          3526.0,
+          3337.0,
+          891.0,
+          2169.0,
+          943.0,
+          2024.0,
+          50588.0
+        ]
+      },
+      {
+        "name": "Hyderabad",
+        "data": [
+          2261.0,
+          2047.0,
+          859.0,
+          1332.0,
+          1359.0,
+          1740.0,
+          36857.0,
+          2261.0,
+          2047.0,
+          859.0,
+          1332.0,
+          1359.0,
+          1740.0,
+          36857.0
+        ]
+      },
+      {
+        "name": "Bengaluru Urban",
+        "data": [
+          9323.0,
+          8519.0,
+          2850.0,
+          5634.0,
+          7109.0,
+          6971.0,
+          95128.0,
+          9323.0,
+          8519.0,
+          2850.0,
+          5634.0,
+          7109.0,
+          6971.0,
+          95128.0
+        ]
+      },
+      {
+        "name": "West Delhi",
+        "data": [
+          3526.0,
+          3337.0,
+          891.0,
+          2169.0,
+          943.0,
+          2024.0,
+          50588.0,
+          3526.0,
+          3337.0,
+          891.0,
+          2169.0,
+          943.0,
+          2024.0,
+          50588.0
+        ]
+      },
+      {
+        "name": "Hyderabad",
+        "data": [
+          2261.0,
+          2047.0,
+          859.0,
+          1332.0,
+          1359.0,
+          1740.0,
+          36857.0,
+          2261.0,
+          2047.0,
+          859.0,
+          1332.0,
+          1359.0,
+          1740.0,
+          36857.0
+        ]
+      }
+    ],
+    "categories": [
+      "Nov-23",
+      "Dec-23",
+      "Jan-24",
+      "Feb-24",
+      "Mar-24",
+      "Apr-24",
+      "May-24",
+      "Nov-23",
+      "Dec-23",
+      "Jan-24",
+      "Feb-24",
+      "Mar-24",
+      "Apr-24",
+      "May-24"
+    ]
+  }
