@@ -118,5 +118,3 @@ select
 	sum(null_net_ord_id) as null_net_ord_id,
 	sum(null_sell_cty) as null_sell_cty
 from aggregated_view;
-
-
