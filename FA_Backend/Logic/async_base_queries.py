@@ -7,8 +7,8 @@ from sqlalchemy import Select, func, extract
 # import asyncpg 
 
 import env_vars as ev
-import models as mdl
-from models import od_dq_base
+import FA_Backend.Models.models as mdl
+from FA_Backend.Models.models import od_dq_base
 
 
 async_engine = create_async_engine(f"postgresql+asyncpg://{ev.db_user}:{ev.db_pwd}@{ev.db_host}:{ev.db_port}/{ev.db_instance}")

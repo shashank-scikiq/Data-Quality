@@ -1,8 +1,8 @@
 import pandas as pd
-from models import od_dq_base
+from FA_Backend.Models.models import od_dq_base
 from sqlalchemy import Select, func, extract
 from datetime import date
-from models import engine
+from FA_Backend.Models.models import engine
 import os
 
 def check_envs(env_vars):
