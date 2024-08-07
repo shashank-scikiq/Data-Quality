@@ -7,16 +7,18 @@ current_dir = os.path.dirname(os.path.realpath(__file__))
 
 app = FastAPI()
 
-static_dir = os.path.join(current_dir, "static/dist/data_quality/browser/static/")
-static_build_dir = os.path.join(current_dir, "static/dist/data_quality/browser/")# Path to the static directory
-app.mount("/static", StaticFiles(directory=static_dir), name="static")
-app.mount("/build", StaticFiles(directory=static_build_dir), name="static")
+dir_lib = os.path.join(current_dir, "Web/lib/")
+dir_assets = os.path.join(current_dir, "Web/assets/")
+
+app.mount("/lib", StaticFiles(directory=dir_lib), name="libraries")
+app.mount("/assets", StaticFiles(directory=dir_assets), name="assets")
 
 
 # Serve the custom HTML page
 @app.get("/", response_class=HTMLResponse)
 async def read_root():
-    html_path = os.path.join(current_dir, "static/dist/data_quality/browser/index.html")
+    # html_path = os.path.join(current_dir, "static/dist/data_quality/browser/index.html")
+    html_path = os.path.join(current_dir, "Web/index.html")
     return FileResponse(html_path)
 
 
