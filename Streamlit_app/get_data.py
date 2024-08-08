@@ -4,19 +4,19 @@ from sqlalchemy import create_engine, MetaData, Table, Column, Date, String, BIG
 from dotenv import load_dotenv
 
 try:
-	load_dotenv(".env")
+	load_dotenv("../FA_Backend/.env")
 except Exception as e:
 	print(e.args[0])
 else:
 	print("Loaded Environment Variables Successfully")
 
-db_host = os.getenv("POSTGRES_HOST")
-db_port = os.getenv("POSTGRES_PORT")
-db_user = os.getenv("POSTGRES_USER")
-db_pwd = os.getenv("POSTGRES_PASSWORD")
-db_instance = os.getenv("POSTGRES_DB")
-db_schema = os.getenv("POSTGRES_SCHEMA")
-db_table = os.getenv("OD_DQ_TBL")
+db_host = os.getenv("PG_HOST")
+db_port = os.getenv("PG_PORT")
+db_user = os.getenv("PG_USERNAME")
+db_pwd = os.getenv("PG_PASSWD")
+db_instance = os.getenv("PG_DB")
+db_schema = os.getenv("PG_SCHEMA")
+db_table = os.getenv("DQ_TABLE")
 
 engine = create_engine(f"postgresql+psycopg://{db_user}:{db_pwd}@{db_host}:{db_port}/{db_instance}")
 meta = MetaData()
@@ -74,9 +74,9 @@ def run_stmt(to_run, cnt=0):
 
 
 if __name__ == "__main__":
-	required_env_vars = ["POSTGRES_HOST", "POSTGRES_PORT",
-						 "POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB",
-						 "POSTGRES_SCHEMA", "OD_DQ_TABLE"]
+	required_env_vars = ["PG_USERNAME", "PG_PASSWD",
+						 "PG_HOST", "PG_PORT", "PG_DB",
+						 "PG_SCHEMA", "DQ_TABLE"]
 	try:
 		check_envs(required_env_vars)
 		print("All required environment variables are loaded.")

@@ -9,7 +9,7 @@ import sys
 sys.path.insert(0, "../Models")
 
 from Models.models import engine
-from Models.models import od_dq_base, dq_agg_view, dq_agg_sum
+from Models.models import od_dq_base, dq_agg_view, dq_agg_sum,dq_col_sum
 
 
 def check_envs(env_vars):
@@ -184,14 +184,49 @@ def query_canc_percentage(curr_dt: datetime.date, prev_dt: datetime.date) -> pd.
     return pd.DataFrame(result)
 
 
-def query_highest_missing_by_seller(curr_dt: datetime.date, count: int = 10) -> pd.DataFrame:
+def query_highest_missing_by_seller(curr_dt: datetime.date, count:int) -> pd.DataFrame:
     stmt_curr = Select(
-  dq_agg_sum.c.ord_date,
-  dq_agg_sum.c.seller_np,
-  func.sum(dq_agg_sum.c.missing_from_total).label("missing_val")).where(
-    dq_agg_sum.c.ord_date==curr_dt).group_by(
-      dq_agg_sum.c.ord_date).group_by(
-    dq_agg_sum.c.seller_np).order_by(desc(func.sum(dq_agg_sum.c.missing_from_total)))
-
+        dq_agg_sum.c.ord_date,
+        dq_agg_sum.c.seller_np,
+        func.sum(dq_agg_sum.c.total_orders).label("total_orders"),
+        func.sum(dq_agg_sum.c.sum_missing_cols).label("missing_val")).where(
+        dq_agg_sum.c.ord_date==curr_dt).group_by(
+        dq_agg_sum.c.ord_date).group_by(
+        dq_agg_sum.c.seller_np).order_by(desc(func.sum(dq_agg_sum.c.sum_missing_cols)))
     result = run_stmt(stmt_curr, count)
     return pd.DataFrame(result)
+
+
+def query_detailed_completed_table(curr_dt: datetime.date, count:int) -> pd.DataFrame:
+    stmt = Select(
+        dq_agg_sum.c.seller_np,
+        func.sum(dq_agg_sum.c.total_orders).label("total_orders"),
+        func.sum(dq_agg_sum.c.sum_missing_cols).label("sum_missing_cols")
+        ).where(dq_agg_sum.c.ord_date==curr_dt).group_by(
+            dq_agg_sum.c.seller_np).order_by(desc(func.sum(dq_agg_sum.c.sum_missing_cols)))
+    result = run_stmt(stmt, count)
+    return pd.DataFrame(result)
+
+
+def query_detailed_cancelled_table(curr_dt: datetime.date, count:int) -> pd.DataFrame:
+    stmt = Select(
+    dq_agg_sum.c.seller_np,
+    func.sum(dq_agg_sum.c.total_canceled_orders).label("total_orders"),
+    func.sum(dq_agg_sum.c.canc_metrices).label("sum_missing_cols")
+    ).where(dq_agg_sum.c.ord_date==curr_dt).group_by(
+        dq_agg_sum.c.seller_np).order_by(desc(
+        func.sum(dq_agg_sum.c.total_canceled_orders)))
+    result = run_stmt(stmt, count)
+    return pd.DataFrame(result)
+
+
+def query_trend_chart() -> pd.DataFrame:
+    stmt = Select(dq_col_sum.c.ord_date,
+       func.sum(dq_col_sum.c.null_del_cty).label("null_del_cty"),
+       func.sum(dq_col_sum.c.null_itm_cat).label("null_itm_cat"),
+       func.sum(dq_col_sum.c.null_cat_cons).label("null_cat_cons"),
+       func.sum(dq_col_sum.c.null_cans_code).label("null_cans_code"),
+       func.sum(dq_col_sum.c.null_cans_dt_time).label("null_cans_dt_time")
+       ).group_by(dq_col_sum.c.ord_date)
+    result = run_stmt(stmt)
+    return pd.DataFrame(result) 

@@ -76,10 +76,10 @@ order by ord_date desc;
 
 
 create view aggregated_sum as (
-select ord_date, seller_np ,(total_orders), (total_canceled_orders), (null_cans_code+null_cans_dt_time) as canc_metrices,(total_orders-total_canceled_orders) as missing_total_base,
+select ord_date, seller_np ,(total_orders), (total_canceled_orders), (null_cans_code+null_cans_dt_time) as canc_metrices,(total_orders-total_canceled_orders) as completed_orders,
 (null_fulfilment_id+null_net_tran_id+null_qty+null_itm_fulfilment_id+null_del_pc+null_created_date_time+null_domain+null_del_cty+
 null_ord_stats+null_fulfil_status+null_itm_cat+null_cat_cons+null_sell_pincode+
-null_prov_id+null_itm_id+null_sell_np+null_net_ord_id+null_sell_cty) as missing_from_total from aggregated_view av);
+null_prov_id+null_itm_id+null_sell_np+null_net_ord_id+null_sell_cty) as sum_missing_cols from aggregated_view av);
 
 
 select * from aggregated_sum;
@@ -93,10 +93,10 @@ group by ord_date
 order by ord_date desc;
 
 select seller_np, sum(total_orders) as total_orders, sum(total_canceled_orders) as total_canceled_orders,
-	sum(canc_metrices) as canc_metrices, sum(missing_total_base) as missing_total_base, sum(missing_from_total) as missing_from_total
+	sum(canc_metrices) as canc_metrices, sum(completed_orders) as completed_orders, sum(sum_missing_cols) as sum_missing_cols
 from aggregated_sum
 group by seller_np
-order by missing_total_base desc;
+order by completed_orders desc;
 
 
 
