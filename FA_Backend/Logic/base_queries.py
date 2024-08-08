@@ -220,7 +220,7 @@ def query_detailed_cancelled_table(curr_dt: datetime.date, count:int) -> pd.Data
     return pd.DataFrame(result)
 
 
-def query_trend_chart() -> pd.DataFrame:
+def query_trend_chart1() -> pd.DataFrame:
     stmt = Select(dq_col_sum.c.ord_date,
        func.sum(dq_col_sum.c.null_del_cty).label("null_del_cty"),
        func.sum(dq_col_sum.c.null_itm_cat).label("null_itm_cat"),
@@ -229,4 +229,5 @@ def query_trend_chart() -> pd.DataFrame:
        func.sum(dq_col_sum.c.null_cans_dt_time).label("null_cans_dt_time")
        ).group_by(dq_col_sum.c.ord_date)
     result = run_stmt(stmt)
-    return pd.DataFrame(result) 
+    return pd.DataFrame(result)
+

@@ -181,7 +181,7 @@ def detailed_cancelled_table(count: int=15, start_date: datetime.date = None) ->
     return json_frame
 
 
-def trend_chart():
+def trend_chart1():
     df = bq.query_trend_chart()
     final_json = {
         'title':'Chart Title',
