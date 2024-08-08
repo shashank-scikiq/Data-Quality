@@ -1,15 +1,15 @@
 import pandas as pd
 
 from typing import Tuple, Any
-from sqlalchemy import Select, func, extract
-from datetime import date
+from sqlalchemy import Select, func, extract, or_, desc
+from datetime import date, datetime
 import os
 import sys
 
-sys.path.insert(0,  "../Models")
+sys.path.insert(0, "../Models")
 
 from Models.models import engine
-from Models.models import od_dq_base
+from Models.models import od_dq_base, dq_agg_view, dq_agg_sum
 
 
 def check_envs(env_vars):
@@ -122,3 +122,76 @@ def get_all_df(dt_val: str, total=0) -> pd.DataFrame:
         .where(extract("month", od_dq_base.c.ord_date) == dt_val.month)
     )
     return pd.DataFrame(run_stmt(all_curr_mnth, total))
+
+
+def query_top_cards(curr_dt: datetime.date, prev_dt: datetime.date) -> pd.DataFrame:
+    top_cards = (
+        Select(
+            dq_agg_sum.c.ord_date.label("Order_Date"),
+            func.sum(dq_agg_sum.c.total_orders).label("Total_Orders"),
+            func.sum(dq_agg_sum.c.total_canceled_orders).label("Cancelled_Orders")
+        ).where(or_(dq_agg_sum.c.ord_date == curr_dt, dq_agg_sum.c.ord_date == prev_dt))
+        .group_by(dq_agg_sum.c.ord_date)
+        .order_by(desc(dq_agg_sum.c.ord_date))
+    )
+    result = run_stmt(top_cards)
+    return pd.DataFrame(result)
+
+
+def query_missing_percentage(curr_dt: datetime.date, prev_dt: datetime.date) -> pd.DataFrame:
+    col_sum_comp = (
+    Select(
+        dq_agg_view.c.ord_date, 
+        func.sum(dq_agg_view.c.total_orders).label("total_orders"),
+        func.sum(dq_agg_view.c.null_fulfilment_id).label("null_fulfilment_id"),
+        func.sum(dq_agg_view.c.null_net_tran_id).label("null_net_tran_id"),
+        func.sum(dq_agg_view.c.null_qty.label("null_qty")),
+        func.sum(dq_agg_view.c.null_itm_fulfilment_id).label("null_itm_fulfilment_id"),
+        func.sum(dq_agg_view.c.null_del_pc).label("null_del_pc"),
+        func.sum(dq_agg_view.c.null_created_date_time).label("null_created_date_time"),
+        func.sum(dq_agg_view.c.null_domain).label("null_domain"),
+        func.sum(dq_agg_view.c.null_del_cty).label("null_del_cty"),
+        func.sum(dq_agg_view.c.null_ord_stats).label("null_ord_stats"),
+        func.sum(dq_agg_view.c.null_fulfil_status).label("null_fulfil_status"),
+        func.sum(dq_agg_view.c.null_itm_cat).label("null_itm_cat"),
+        func.sum(dq_agg_view.c.null_cat_cons).label("null_cat_cons"),
+        func.sum(dq_agg_view.c.null_sell_pincode).label("null_sell_pincode"),
+        func.sum(dq_agg_view.c.null_prov_id).label("null_prov_id"),
+        func.sum(dq_agg_view.c.null_itm_id).label("null_itm_id"),
+        func.sum(dq_agg_view.c.null_sell_np).label("null_sell_np"),
+        func.sum(dq_agg_view.c.null_net_ord_id).label("null_net_ord_id"),
+        func.sum(dq_agg_view.c.null_sell_cty).label("null_sell_cty"),
+        ).where(or_(dq_agg_view.c.ord_date==curr_dt, dq_agg_view.c.ord_date==prev_dt))
+        .group_by(dq_agg_view.c.ord_date)
+        .order_by(desc(dq_agg_view.c.ord_date))
+    )
+    result = run_stmt(col_sum_comp)
+    return pd.DataFrame(result)
+
+
+def query_canc_percentage(curr_dt: datetime.date, prev_dt: datetime.date) -> pd.DataFrame:
+    col_sum_canc = (
+    Select(
+        dq_agg_view.c.ord_date, 
+        func.sum(dq_agg_view.c.total_canceled_orders).label("total_canceled_orders"),
+        func.sum(dq_agg_view.c.null_cans_code).label("null_cans_code"),
+        func.sum(dq_agg_view.c.null_cans_dt_time).label("null_cans_dt_time")
+        ).where(or_(dq_agg_view.c.ord_date==curr_dt, dq_agg_view.c.ord_date==prev_dt))
+        .group_by(dq_agg_view.c.ord_date)
+        .order_by(desc(dq_agg_view.c.ord_date))
+    )
+    result = run_stmt(col_sum_canc)
+    return pd.DataFrame(result)
+
+
+def query_highest_missing_by_seller(curr_dt: datetime.date, count: int = 10) -> pd.DataFrame:
+    stmt_curr = Select(
+  dq_agg_sum.c.ord_date,
+  dq_agg_sum.c.seller_np,
+  func.sum(dq_agg_sum.c.missing_from_total).label("missing_val")).where(
+    dq_agg_sum.c.ord_date==curr_dt).group_by(
+      dq_agg_sum.c.ord_date).group_by(
+    dq_agg_sum.c.seller_np).order_by(desc(func.sum(dq_agg_sum.c.missing_from_total)))
+
+    result = run_stmt(stmt_curr, count)
+    return pd.DataFrame(result)

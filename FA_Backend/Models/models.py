@@ -2,10 +2,13 @@ import sys
 from sqlalchemy import create_engine, MetaData, Table, Column, Date, String, BIGINT
 from dotenv import load_dotenv
 from Misc import env_vars as ev
+import os
 
 sys.path.insert(0, "../")
-load_dotenv(ev.ENV_FILE)
+ev.chk_env_vars()
 
+
+# print("The port is ", ev.PG_PORT)
 engine = create_engine(f"postgresql+psycopg://{ev.PG_USER}:{ev.PG_PWD}@{ev.PG_HOST}:{ev.PG_PORT}/{ev.PG_DB}")
 meta = MetaData()
 meta.reflect(bind=engine, schema=f"{ev.PG_SCHEMA}")

@@ -5,21 +5,22 @@ import os
 import json
 
 from Logic import base_queries as bq
+from Logic import API_calls as ac
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
 json_file = "API/api_struct.json"
 
 app = FastAPI()
 
-# dir_lib = os.path.join(current_dir, "Web/lib/")
-# dir_assets = os.path.join(current_dir, "Web/assets/")
-# app.mount("/lib", StaticFiles(directory=dir_lib), name="libraries")
-# app.mount("/assets", StaticFiles(directory=dir_assets), name="assets")
+dir_lib = os.path.join(current_dir, "Web/lib/")
+dir_assets = os.path.join(current_dir, "Web/assets/")
+app.mount("/lib", StaticFiles(directory=dir_lib), name="libraries")
+app.mount("/assets", StaticFiles(directory=dir_assets), name="assets")
 
-static_dir = os.path.join(current_dir, "static/ng-workspace/dist/data_quality/browser/static/")
-static_build_dir = os.path.join(current_dir, "static/ng-workspace/dist/data_quality/browser/")
-app.mount("/static", StaticFiles(directory=static_dir), name="static")
-app.mount("/build", StaticFiles(directory=static_build_dir), name="static")
+# static_dir = os.path.join(current_dir, "static/ng-workspace/dist/data_quality/browser/static/")
+# static_build_dir = os.path.join(current_dir, "static/ng-workspace/dist/data_quality/browser/")
+# app.mount("/static", StaticFiles(directory=static_dir), name="static")
+# app.mount("/build", StaticFiles(directory=static_build_dir), name="static")
 
 # All Results in Json format
 with open(json_file, "r") as f:
@@ -30,20 +31,22 @@ result = json.loads(data)
 # Serve the custom HTML page
 @app.get("/", response_class=HTMLResponse)
 async def read_root():
-    html_path = os.path.join(current_dir, "static/ng-workspace/dist/data_quality/browser/index.html")
-    # html_path = os.path.join(current_dir, "Web/index.html")
+    # html_path = os.path.join(current_dir, "static/ng-workspace/dist/data_quality/browser/index.html")
+    html_path = os.path.join(current_dir, "Web/index.html")
     return FileResponse(html_path)
 
 
 @app.get("/api/dq_report/top_card/")
 async def top_card():
-    resp = result["dq_report"]["top_card"]
+    resp = ac.top_cards_delta()
+    # resp = result["dq_report"]["top_card"]
     return JSONResponse(content=resp)
 
 
 @app.get("/api/dq/missing_percentage/")
 async def missing_percentage():
-    resp = result["missing_percentage"]
+    # resp = result["missing_percentage"]
+    resp = ac.missing_percentage()
     return JSONResponse(content=resp)
 
 
@@ -85,7 +88,7 @@ async def tbl_detail_cancelled():
 @app.get("/api/dq_report/cancel_highest_missing_pid_data/")
 async def cancel_highest_missing_pids():
     resp = result["dq_report"]["cancel_highest_missing_pid_data"]
-    return JSONResponse(content=data)
+    return JSONResponse(content=resp)
 
 
 if __name__ == "__main__":
