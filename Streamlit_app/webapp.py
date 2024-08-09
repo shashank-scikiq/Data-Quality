@@ -9,7 +9,31 @@ import numpy as np
 # trend
 
 min_ord_date, max_ord_date = mdl.get_date_range()
-cols_dict = mdl.cols_dict
+cols_dict = cols_dict = {
+    "curr_date": "Current Date",
+    "ord_date": "Order Date",
+    "seller_np": "Seller NP",
+    "null_fulfilment_id": "Fulfilment ID",
+    "null_net_tran_id": "Net Transaction ID",
+    "null_qty": "Quantity",
+    "null_itm_fulfilment_id": "Item Fulfilment ID",
+    "null_del_pc": "Delivery Pincode",
+    "null_created_date_time": "Created Date",
+    "null_domain": "Domain",
+    "null_del_cty": "Delivery City",
+    "null_cans_code": "Cancellation Code",
+    "null_cans_dt_time": "Cancellation Date",
+    "null_ord_stats": "Order Status",
+    "null_fulfil_status": "Fulfilment Status",
+    "null_itm_cat": "Item Category",
+    "null_cat_cons": "Category",
+    "null_sell_pincode": "Seller Pincode",
+    "null_prov_id": "Provider ID",
+    "null_itm_id": "Item ID",
+    "null_sell_np": "Null Seller NP",
+    "null_net_ord_id": "Network Order ID",
+    "null_sell_cty": "Seller City"
+}
 
 null_cols_comp = [x for x in mdl.get_columns() if x.__contains__('null') and not x.__contains__('cans')]
 null_cols_canc = [x for x in mdl.get_columns() if x.__contains__('null') and x.__contains__('cans')]

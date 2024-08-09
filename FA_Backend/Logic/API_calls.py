@@ -105,14 +105,97 @@ def missing_percentage(start_date: datetime.date = None) -> str:
             if per > 0:
                 tmp_dict = {}
                 tmp_dict['title'] = cols_dict[col]
-                tmp_dict['series'] = [float(per)]
+                tmp_dict['series'] = [np.round(float(per),2)]
                 res.append(tmp_dict)
     
     return res
 
 
-def missing_seller_np(count: int, start_date: datetime.date = None) -> str:
+def missing_per_by_seller(count: int=5, start_date: datetime.date = None,
+                                 threshold:float = 0.05) -> str:
     if not start_date:
         start_date = bq.get_date_range()[1]
     df = bq.query_highest_missing_by_seller(start_date, count)
-    
+    df["missing_percentage"] = df["missing_val"]/df["total_orders"]
+    df = df.sort_values(by="missing_percentage", ascending=False)
+    json_str = []
+    for x in df.index:
+        json_frame = {
+        "id":"",
+        "count":"",
+        "increased":"",
+        "variancePercentage":"",
+        "varianceText":""
+            }
+        json_frame["id"] = df.iloc[x]["seller_np"]
+        json_frame["count"] = np.round(float((df.iloc[x]["missing_percentage"])),2)
+        json_frame["increased"] = True if df.iloc[x]["missing_percentage"] > 0 else "False"
+        json_frame["variancePercentage"] = float(threshold*100)
+        json_frame["varianceText"] = "Threshold"
+        json_str.append(json_frame)
+    return json_str
+
+
+def detailed_completed_table(count: int=15, start_date: datetime.date = None) -> str:
+    if not start_date:
+        start_date = bq.get_date_range()[1]
+    df = bq.query_detailed_completed_table(start_date, count)
+    df["missing_percentage"] = df["sum_missing_cols"]/df["total_orders"]
+    df = df.sort_values(by="missing_percentage", ascending=False)
+    json_frame = []
+    for x in df.index:
+        json_str = {
+            "Seller NP": "",
+            "% Missing Orders":0,
+            "Sum of Null Values":0,
+            "Total Orders":0
+            }
+        json_str["Seller NP"] = df.loc[x]["seller_np"]
+        json_str["Sum of Null Values"] = int(df.loc[x]["sum_missing_cols"])
+        json_str["Total Orders"] = int(df.loc[x]["total_orders"])
+        json_str["% Missing Orders"] = np.round(float(df.loc[x]["missing_percentage"]),2)
+        json_frame.append(json_str)
+    return json_frame
+
+
+def detailed_cancelled_table(count: int=15, start_date: datetime.date = None) -> str:
+    if not start_date:
+        start_date = bq.get_date_range()[1]
+    df = bq.query_detailed_cancelled_table(start_date, count)
+    df["sum_missing_cols"].replace(0,np.nan, inplace=True)
+    df["missing_percentage"] = df["sum_missing_cols"] / df["total_orders"]
+    df = df.dropna()
+    json_frame = []
+    for x in df.index:
+        json_str = {
+            "Seller NP": "",
+            "% Missing Orders":0,
+            "Sum of Cancelled Values":0,
+            "Total Cancellations":0
+            }
+        json_str["Seller NP"] = df.loc[x]["seller_np"]
+        json_str["Sum of Cancelled Values"] = int(df.loc[x]["sum_missing_cols"])
+        json_str["Total Cancelled"] = int(df.loc[x]["total_orders"])
+        json_str["% Missing Cancellation"] = np.round(float(df.loc[x]["missing_percentage"]),2)
+        json_frame.append(json_str)
+    return json_frame
+
+
+def trend_chart1():
+    df = bq.query_trend_chart()
+    final_json = {
+        'title':'Chart Title',
+        'series':[],
+        'categories': []
+    }
+    for col in df.columns:
+        if col == 'ord_date':
+            final_json['categories'] = df[col].astype(str).tolist()
+        else:
+            data_ser = {
+                'name': cols_dict[col],
+                'data': df[col].astype(int).tolist()
+            }
+            final_json['series'].append(data_ser)
+    final_json['title'] = 'Columns with Highest Missing Data'
+    return final_json

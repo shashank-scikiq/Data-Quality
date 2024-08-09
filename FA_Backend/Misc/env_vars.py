@@ -22,6 +22,7 @@ PG_SCHEMA = os.getenv("PG_SCHEMA")
 DQ_TBL = os.getenv("DQ_TABLE")
 AGG_VIEW = os.getenv("AGG_VIEW")
 AGG_SUM = os.getenv("AGG_SUM")
+COL_SUM = os.getenv("COl_SUM")
 
 cols_dict = {
     "curr_date": "Current Date",
@@ -54,7 +55,8 @@ cols_dict = {
 def chk_env_vars():
     required_vars = ["PG_HOST", "PG_PORT",
                     "PG_USERNAME", "PG_PASSWD", "PG_DB",
-                    "PG_SCHEMA", "DQ_TABLE", "AGG_VIEW","AGG_SUM"]
+                    "PG_SCHEMA", "DQ_TABLE", "AGG_VIEW","AGG_SUM",
+                    "COL_SUM"]
     missing_vars = []
 
     for var in required_vars:
