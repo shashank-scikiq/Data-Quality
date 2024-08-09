@@ -54,7 +54,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
 
   initData() {
     // this.getDateRange();
-    this.appService.dateRange$.subscribe((value: any) => {
+    this.appService.selectedDate$.subscribe((value: any) => {
       this.dateRange = value;
     });
     this.appService.currentUrl$.subscribe((val) => {
@@ -74,7 +74,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   getDateRange() {
     this.appService.getDataDateRange().subscribe(
       (response: any) => {
-        this.appService.setDateRange([new Date(response.min_date), new Date(response.max_date)]);
+        this.appService.setselectedDate( new Date(response.max_date));
         this.appService.setChoosableDateRange([new Date(response.min_date), new Date(response.max_date)]);
       },
       (error: Error) => {

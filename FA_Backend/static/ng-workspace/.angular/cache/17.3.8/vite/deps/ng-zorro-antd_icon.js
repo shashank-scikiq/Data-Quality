@@ -8,19 +8,17 @@ import {
   NzIconModule,
   NzIconPatchService,
   NzIconService
-} from "./chunk-RPXNGC7E.js";
-import "./chunk-MT5I5IR4.js";
-import "./chunk-MD5OESHF.js";
-import "./chunk-RZHBRXCE.js";
-import "./chunk-MNIAYSAU.js";
-import "./chunk-GBZHAMQ6.js";
-import "./chunk-QAFD7PZM.js";
-import "./chunk-MJKPXESG.js";
-import "./chunk-4BB4AWV4.js";
-import "./chunk-GFVJDENN.js";
-import "./chunk-QOAHSALO.js";
-import "./chunk-LOA65BFQ.js";
-import "./chunk-R4Q5L3HJ.js";
+} from "./chunk-3JVZK4SS.js";
+import "./chunk-TBSFHEGZ.js";
+import "./chunk-X34U52FX.js";
+import "./chunk-YGC3SPOH.js";
+import "./chunk-YCYYSHAS.js";
+import "./chunk-IZVQILT3.js";
+import "./chunk-FIYX3P2C.js";
+import "./chunk-KAW75WPJ.js";
+import "./chunk-EHCS2UZT.js";
+import "./chunk-JKR55PDT.js";
+import "./chunk-PZQZAEDH.js";
 export {
   DEFAULT_TWOTONE_COLOR,
   NZ_ICONS,

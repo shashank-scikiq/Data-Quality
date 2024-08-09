@@ -1,6 +1,6 @@
 import {
   DOCUMENT
-} from "./chunk-MJKPXESG.js";
+} from "./chunk-KAW75WPJ.js";
 import {
   Directive,
   EventEmitter,
@@ -21,11 +21,9 @@ import {
   ɵɵdirectiveInject,
   ɵɵinject,
   ɵɵlistener
-} from "./chunk-4BB4AWV4.js";
-import "./chunk-GFVJDENN.js";
-import "./chunk-QOAHSALO.js";
-import "./chunk-LOA65BFQ.js";
-import "./chunk-R4Q5L3HJ.js";
+} from "./chunk-EHCS2UZT.js";
+import "./chunk-JKR55PDT.js";
+import "./chunk-PZQZAEDH.js";
 
 // node_modules/@angular/cdk/fesm2022/clipboard.mjs
 var PendingCopy = class {

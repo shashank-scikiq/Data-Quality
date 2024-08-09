@@ -158,6 +158,22 @@ def detailed_completed_table(count: int=15, start_date: datetime.date = None) ->
     return json_frame
 
 
+def data_sanity_last_run_date_report():
+    df = bq.query_data_sanity_last_run_date_report()
+    df['month'] = pd.to_datetime(df['month']).dt.strftime('%b %Y')
+
+    data = df.to_dict(orient='records')
+    return { "title": "Data sanity last run date report", "data": data}
+
+def ds_variance_data_report():
+    df = bq.query_data_variance_report()
+    df['month'] = df['month'].str.replace(" 00:00:00", "")
+
+    df['month'] = pd.to_datetime(df['month']).dt.strftime('%b %Y')
+    data = df.to_dict(orient='records')
+    return { "title": "Data sanity variance report", "data": data}
+
+
 def detailed_cancelled_table(count: int=15, start_date: datetime.date = None) -> str:
     if not start_date:
         start_date = bq.get_date_range()[1]
@@ -181,7 +197,7 @@ def detailed_cancelled_table(count: int=15, start_date: datetime.date = None) ->
     return json_frame
 
 
-def trend_chart1():
+def trend_chart():
     df = bq.query_trend_chart()
     final_json = {
         'title':'Chart Title',

@@ -7,7 +7,6 @@ import os
 sys.path.insert(0, "../")
 ev.chk_env_vars()
 
-
 # print("The port is ", ev.PG_PORT)
 engine = create_engine(f"postgresql+psycopg://{ev.PG_USER}:{ev.PG_PWD}@{ev.PG_HOST}:{ev.PG_PORT}/{ev.PG_DB}")
 meta = MetaData()

@@ -6,9 +6,9 @@ import { AppService } from '@openData/app/core/api/app/app.service';
   templateUrl: './date-picker.component.html',
   styleUrl: './date-picker.component.scss'
 })
-export class DatePickerComponent implements OnInit, OnChanges {
+export class DatePickerComponent implements OnInit {
 
-  @Input() dateRange: any = [];
+  @Input() selectedDate: any = [];
   @Output() selectedDateRange = new EventEmitter<any>();
   availableDateRange: any = [];
 
@@ -17,7 +17,7 @@ export class DatePickerComponent implements OnInit, OnChanges {
   constructor(private appService: AppService) {}
 
   ngOnInit(): void {
-    this.date = this.dateRange;
+    this.date = this.selectedDate;
     this.appService.choosableDateRange$.subscribe((val: any) => {
       this.availableDateRange = val;
     });
@@ -30,45 +30,22 @@ export class DatePickerComponent implements OnInit, OnChanges {
     return !(this.date[0].toString()==this.availableDateRange[0].toString() && this.date[1].toString() == this.availableDateRange[1].toString())
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    this.date = changes['date'].currentValue;
-  }
+  // ngOnChanges(changes: SimpleChanges): void {
+  //   console.log(changes)
+  //   this.date = changes['dateRange'].currentValue;
+  // }
 
-  onChange(result: Date[]): void {
-    if (result.length == 0 || result == null || result == undefined) {
+  onChange(result: Date): void {
+    console.log(result, "in on change");
+    if (result == null || result == undefined) {
       result = this.availableDateRange[1];
     }
     this.selectedDateRange.emit(result);
   }
-  disabledDate = (current: Date): boolean => {
-    if (!this.availableDateRange || !current) return false;
 
-     console.log(current, "current");
-  
-    const currentMonth = current.getMonth();
-    const currentYear = current.getFullYear();
-  
-    const startMonth = this.availableDateRange[0].getMonth();
-    const startYear = this.availableDateRange[0].getFullYear();
-    const endMonth = this.availableDateRange[1].getMonth();
-    const endYear = this.availableDateRange[1].getFullYear();
-  
-    // If the current year is before the start year or after the end year, disable the date
-    if (currentYear < startYear || currentYear > endYear) {
-      return true;
-    }
-  
-    // If the current year is the start year, ensure the month is not before the start month
-    if (currentYear === startYear && currentMonth < startMonth) {
-      return true;
-    }
-  
-    // If the current year is the end year, ensure the month is not after the end month
-    if (currentYear === endYear && currentMonth > endMonth) {
-      return true;
-    }
-  
-    // If none of the above conditions are met, enable the date
-    return false;
+  disabledDate = (current: Date): boolean => {
+    if (!this.availableDateRange)
+      return false;
+    return current && (current < this.availableDateRange[0] || current > this.availableDateRange[1]);
   }
 }

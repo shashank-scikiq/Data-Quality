@@ -23,6 +23,10 @@ DQ_TBL = os.getenv("DQ_TABLE")
 AGG_VIEW = os.getenv("AGG_VIEW")
 AGG_SUM = os.getenv("AGG_SUM")
 COL_SUM = os.getenv("COl_SUM")
+DS_PG_SCHEMA = os.getenv("DB_SCHEMA_SOURCE_DATA_SANITY")
+DS_TABLE = os.getenv("DATA_SANITY_TBL")
+DS_DB = os.getenv("DS_DB_NAME")
+DS_START_DATE = os.getenv("start_date_data")
 
 cols_dict = {
     "curr_date": "Current Date",

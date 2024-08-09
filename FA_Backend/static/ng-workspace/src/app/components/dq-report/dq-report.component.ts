@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AppService } from '@openData/app/core/api/app/app.service';
+import { delay } from 'rxjs';
 
 @Component({
   selector: 'app-dq-report',
@@ -85,7 +86,7 @@ export class DqReportComponent implements OnInit {
 
   public object = Object;
 
-  dateRange: any = [];
+  selectedDate: any = null;
 
   isDetailCompletedTableDataloaded: boolean = true;
 
@@ -96,39 +97,26 @@ export class DqReportComponent implements OnInit {
   section1Chart1Data: any = null;
   section1Chart2Data: any = null; 
   section1TableData: any = null;
+  section2TableData: any = null;
+
 
   // >>>>>>>>>>>>>>>>>>>
 
   constructor(private appService: AppService) { }
 
   ngOnInit(): void {
-    this.getDateRange();
-    this.appService.dateRange$.subscribe((value) => {
-      this.dateRange = value;
-
-      this.initBoard();
-
-      this.initSanityData();
+    this.appService.selectedDate$.subscribe((value) => {
+      if (value) {
+        this.selectedDate = value;
+  
+        this.initBoard();
+  
+        this.initSanityData();
+      }
     })
   }
 
   initSanityData() {
-    this.appService.getDataSanityChart1Data().subscribe(
-      (res: any) => {
-        this.section1Chart1Data = res;
-      },
-      (error: Error) => {
-        console.log(error);
-      }
-    )
-    this.appService.getDataSanityChart2Data().subscribe(
-      (res: any) => {
-        this.section1Chart2Data = res;
-      },
-      (error: Error) => {
-        console.log(error);
-      }
-    )
     this.appService.getDataSanityTableData().subscribe(
       (res: any) => {
         this.section1TableData = res;
@@ -137,20 +125,27 @@ export class DqReportComponent implements OnInit {
         console.log(error);
       }
     )
-  }
-
-  initBoard() {
-    this.appService.getTrend1Data().subscribe(
-      (response: any) => {
-        this.trend1 = response;
-      }, (error: Error) => {
+    this.appService.getDataVarianceTableData().subscribe(
+      (res: any) => {
+        this.section2TableData = res;
+      },
+      (error: Error) => {
         console.log(error);
       }
-    );
+    )
+  }
 
-    this.appService.getTrend2Data().subscribe(
+  async setTrendChart(data: any) {
+    this.trend1 = data;
+    await delay(100);
+  }
+
+  async initBoard() {
+    this.appService.getTrend1Data().subscribe(
       (response: any) => {
-        this.trend2 = response;
+        if (response) {
+          this.setTrendChart(response);
+        }
       }, (error: Error) => {
         console.log(error);
       }
@@ -197,23 +192,7 @@ export class DqReportComponent implements OnInit {
     );
   }
 
-  setDateRange(value: any) {
-    this.appService.setDateRange(value);
+  setSelectedDate(value: any) {
+    this.appService.setselectedDate(value);
   }
-
-  getDateRange() {
-    this.isLoading = true;
-    this.appService.getDataDateRange('retail/overall').subscribe(
-      (response: any) => {
-        this.appService.setDateRange([new Date(response.min_date), new Date(response.max_date)]);
-        this.appService.setChoosableDateRange([new Date(response.min_date), new Date(response.max_date)]);
-        this.isLoading = false;
-      },
-      (error: Error) => {
-        console.log(error);
-        this.isLoading = false;
-      }
-    )
-  }
-
 }
