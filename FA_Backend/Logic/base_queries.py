@@ -44,34 +44,6 @@ def get_date_range():
     return dt_rng[0], dt_rng[1]
 
 
-def load_cancelled_orders(dt_val: date, total=0):
-    cancelled = (
-        Select(od_dq_base.c.ord_date, od_dq_base.c.seller_np,
-               func.sum(od_dq_base.c.null_cans_code).label("Cancellation_code"),
-               func.sum(od_dq_base.c.null_cans_dt_time).label("Cancelled_Dates"))
-        .where(od_dq_base.c.total_canceled_orders > 0)
-        .where(od_dq_base.c.null_cans_code > 0)
-        .where(od_dq_base.c.ord_date == dt_val)
-        .group_by(od_dq_base.c.ord_date, od_dq_base.c.seller_np)
-    )
-    return run_stmt(cancelled, total)
-
-
-def load_missing_pc(dt_val: str, col_name: str, total=0, delta=False) -> list[str]:
-    # if delta
-    col_ = getattr(od_dq_base.c, col_name)
-    missing_col = (
-        Select(
-            od_dq_base.c.seller_np,
-            col_,
-            od_dq_base.c.total_orders)
-        .where(col_ > 0)
-        .where(od_dq_base.c.ord_date == dt_val)
-        .order_by(col_.desc())
-    )
-    return run_stmt(missing_col, total)
-
-
 def curr_date() -> str:
     curr_dt = (
         Select(func.max(od_dq_base.c.curr_date))
@@ -81,40 +53,6 @@ def curr_date() -> str:
 
 def get_columns() -> list[str]:
     return od_dq_base.columns.keys()
-
-
-def get_sellers(dt_val: str) -> list[str]:
-    sellers = (
-        Select(
-            od_dq_base.c.seller_np).distinct().where(
-            od_dq_base.c.ord_date == dt_val)
-    )
-    return run_stmt(sellers)
-
-
-def get_per_col(dt_val: str) -> tuple[Any, Any]:
-    all_data = (
-        Select(od_dq_base)
-        .where(od_dq_base.c.ord_date == dt_val)
-    )
-    df = pd.DataFrame(run_stmt(all_data))
-    # print(df)
-    null_cols = [x for x in df.columns if x.__contains__('null') and not x.__contains__('cans')]
-    null_cols.append("total_orders")
-    null_cols_canc = [x for x in df.columns if x.__contains__('null') and x.__contains__('cans')]
-    null_cols_canc.append("total_canceled_orders")
-    df_completed = df[null_cols]
-    df_canc = df[null_cols_canc]
-    return df_completed, df_canc
-
-
-def get_all_df(dt_val: str, total=0) -> pd.DataFrame:
-    # parsed_date = datetime.strptime(dt_val, "%Y-%m-%d")
-    all_curr_mnth = (
-        Select(od_dq_base)
-        .where(extract("month", od_dq_base.c.ord_date) == dt_val.month)
-    )
-    return pd.DataFrame(run_stmt(all_curr_mnth, total))
 
 
 def query_top_cards(curr_dt: datetime.date, prev_dt: datetime.date) -> pd.DataFrame:
