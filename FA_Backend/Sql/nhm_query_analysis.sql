@@ -3,6 +3,8 @@ WHERE "Order status" = 'Cancelled'
 AND date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')) = (current_date - interval '1' day)
 AND "seller np name" = 'biz.enstore.com';
 
+SELECT * FROM "default"."nhm_order_fulfillment_subset_v1" LIMIT 10;
+
 
 SELECT DISTINCT "Cancellation Code" FROM default.nhm_order_fulfillment_subset_v1;
 
@@ -43,3 +45,41 @@ GROUP by
 	"seller np name";
 
 -- ========================================================================================================
+
+
+-- Date wise, Seller wise Status Codes
+-- ===================================
+
+select 	
+	date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')) order_date,
+	"seller np name" AS seller_np,
+	"Order Status" AS order_status,
+	"Cancellation code" AS cancellation_code
+from "default"."nhm_order_fulfillment_subset_v1"
+where date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')) = Date('2024-08-10')
+group by 
+	date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')),
+	"seller np name",
+	"Order Status",
+	"Cancellation code"
+order by "seller np name";
+
+
+-- Seller NP name 
+-- ===================================
+
+select 	
+	date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')) AS order_date,
+	"seller np name" AS seller_np
+from "default"."nhm_order_fulfillment_subset_v1"
+where extract(month from date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s'))) = 06
+group by 
+	date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')),
+	"seller np name"
+order by date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')), "seller np name";
+
+
+
+-- ========================================================================================================
+
+

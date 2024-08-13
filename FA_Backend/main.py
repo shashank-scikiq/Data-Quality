@@ -40,12 +40,28 @@ app.mount("/static", StaticFiles(directory=static_dir), name="static")
 app.mount("/dq", StaticFiles(directory=static_build_dir), name="static")
 
 
+@app.get("/api/get-max-date/")
+async def get_max_date():
+    dt_rng = bq.get_date_range()
+    resp = {
+        "min_date": dt_rng[0].strftime("%Y-%m-%d"),
+        "max_date": dt_rng[1].strftime("%Y-%m-%d")
+    }
+    print(resp)
+    return JSONResponse(content=resp)
+
+
 # Serve the custom HTML page
 @app.get("/", response_class=HTMLResponse)
 async def read_root():
     html_path = os.path.join(static_build_dir, "index.html")
     # html_path = os.path.join(current_dir, "Web/index.html")
     return FileResponse(html_path)
+
+
+@app.get("/api/get/sellers/{date_val}")
+async def sellers_by_mnth(date_val):
+    return "test"
 
 
 @app.get("/api/dq_report/top_card/")
@@ -59,17 +75,6 @@ async def top_card():
 async def missing_percentage():
     # resp = result["missing_percentage"]
     resp = ac.missing_percentage()
-    return JSONResponse(content=resp)
-
-
-@app.get("/api/get-max-date/")
-async def get_max_date():
-    dt_rng = bq.get_date_range()
-    resp = {
-        "min_date": dt_rng[0].strftime("%Y-%m-%d"),
-        "max_date": dt_rng[1].strftime("%Y-%m-%d")
-    }
-    print(resp)
     return JSONResponse(content=resp)
 
 
@@ -100,7 +105,7 @@ async def cancel_highest_missing_pids():
 
 # DATA SANITY APIS
 @lru_cache(maxsize=32)
-def get_ds_last_run_date_report():
+async def get_ds_last_run_date_report():
     return ac.data_sanity_last_run_date_report()
 
 
@@ -111,7 +116,7 @@ async def get_last_run_date_report():
 
 
 @lru_cache(maxsize=32)
-def get_ds_variance_report():
+async def get_ds_variance_report():
     return ac.ds_variance_data_report()
 
 

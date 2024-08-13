@@ -1,5 +1,5 @@
 import sys
-from sqlalchemy import create_engine, MetaData, Table, Column, Date, String, BIGINT
+from sqlalchemy import create_engine, MetaData, Table, Column, Date, String, BIGINT, INT
 from dotenv import load_dotenv
 from Misc import env_vars as ev
 import os
@@ -114,6 +114,48 @@ dq_col_sum = Table(
     Column("null_sell_np", BIGINT, nullable=False),
     Column("null_net_ord_id", BIGINT, nullable=False),
     Column("null_sell_cty", BIGINT, nullable=False),
+    schema=ev.PG_SCHEMA,
+    extend_existing=True
+)
+
+dq_dim_order_status = Table(
+    ev.DIM_ORD_STAT,
+    meta,
+    Column("order_date", Date, nullable=False),
+    Column("seller_np", String(255), nullable=True),
+    Column("order_status", String(255), nullable=True),
+    Column("cancellation_code", String(255), nullable=True),
+    schema=ev.PG_SCHEMA,
+    extend_existing=True
+)
+
+dq_dim_sellers = Table(
+    ev.DIM_SELLERS,
+    meta,
+    Column("order_date", Date, nullable=False),
+    Column("seller_np", String(255), nullable=False),
+    schema=ev.PG_SCHEMA,
+    extend_existing=True
+)
+
+dq_canc_ord_stat = Table(
+    ev.CANC_ORD_STAT,
+    meta,
+    Column("order_date", Date, nullable=False),
+    Column("seller_np", String(255), nullable=False),
+    Column("cancelled_orders", INT, nullable=False),
+    Column("null_count", INT, nullable=False),
+    Column("not_null_count", INT, nullable=False),
+    schema=ev.PG_SCHEMA,
+    extend_existing=True
+)
+
+dq_compl_ord_stat = Table(
+    ev.COMPL_ORD_STAT,
+    meta,
+    Column("order_date", Date, nullable=False),
+    Column("order_status", String(30), nullable=False),
+    Column("seller_np", String(255), nullable=False),
     schema=ev.PG_SCHEMA,
     extend_existing=True
 )
