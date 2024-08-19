@@ -4,10 +4,10 @@ from dotenv import load_dotenv
 from Misc import env_vars as ev
 import os
 
-sys.path.insert(0, "../")
-ev.chk_env_vars()
+# sys.path.insert(0, "../")
+# ev.chk_env_vars()
 
-# print("The port is ", ev.PG_PORT)
+print("The port is ", ev.PG_PORT)
 engine = create_engine(f"postgresql+psycopg://{ev.PG_USER}:{ev.PG_PWD}@{ev.PG_HOST}:{ev.PG_PORT}/{ev.PG_DB}")
 meta = MetaData()
 meta.reflect(bind=engine, schema=f"{ev.PG_SCHEMA}")
@@ -138,24 +138,58 @@ dq_dim_sellers = Table(
     extend_existing=True
 )
 
-dq_canc_ord_stat = Table(
-    ev.CANC_ORD_STAT,
+dq_agg_order_stats = Table(
+    ev.AGG_ORD_STATS,
     meta,
-    Column("order_date", Date, nullable=False),
-    Column("seller_np", String(255), nullable=False),
-    Column("cancelled_orders", INT, nullable=False),
-    Column("null_count", INT, nullable=False),
-    Column("not_null_count", INT, nullable=False),
+    Column("order_date", Date, nullable = False),
+    Column("seller_np", String(255), nullable = False),
+    Column("in_progress", INT, nullable=True),
+    Column("completed", INT, nullable=True),
+    Column("cancelled", INT, nullable=True),
+    Column("cancellation_code_missing", INT, nullable=True),
+    schema = ev.PG_SCHEMA,
+    extend_existing=True
+)
+
+ds_data_sanity = Table(
+    ev.DS_TABLE,
+    meta,
+    Column("month", Date, nullable=False),
+    Column("sub_domain_name", String(50), nullable=False),
+    Column("dashboard", String(255), nullable=False),
+    Column("view_name", String(255), nullable=False),
+    Column("row_count", BIGINT, nullable=False),
+    Column("distinct_order_count", BIGINT, nullable=False),
+    Column("row_count_till_last_run_date", BIGINT, nullable=False),
+    Column("distinct_order_count_till_last_run_date", BIGINT, nullable=False),
+    Column("run_date", Date, nullable=False),
+    Column("domain_name", String(100), nullable=False),
+    Column("last_run_date", Date, nullable=False),
     schema=ev.PG_SCHEMA,
     extend_existing=True
 )
 
-dq_compl_ord_stat = Table(
-    ev.COMPL_ORD_STAT,
+ds_last_run_date = Table(
+    ev.DS_LAST_RUN_DATE,
     meta,
-    Column("order_date", Date, nullable=False),
-    Column("order_status", String(30), nullable=False),
-    Column("seller_np", String(255), nullable=False),
+    Column("month", Date, nullable=False),
+    Column("NO-OD B2C", INT, nullable=True),
+    Column("NO-OD B2B", INT, nullable=True),
+    Column("NO-OD GV", INT, nullable=True),
+    Column("NO-OD Logistics", INT, nullable=True),
+    Column("OD-L1 B2C", INT, nullable=True),
+    Column("OD-L1 B2B", INT, nullable=True),
+    Column("OD-L1 GV", INT, nullable=True),
+    Column("OD-L1 Logistics", INT, nullable=True),
+    Column("L1-L2 B2C", INT, nullable=True),
+    Column("L1-L2 B2B", INT, nullable=True),
+    Column("L1-L2 GV", INT, nullable=True),
+    Column("L1-L2 Logistics", INT, nullable=True),
+    Column("L2-L3 B2C", INT, nullable=True),
+    Column("L2-L3 B2B", INT, nullable=True),
+    Column("L2-L3 GV", INT, nullable=True),
+    Column("L2-L3 Logistics", INT, nullable=True),
+    Column("run_date", Date, nullable=False),
     schema=ev.PG_SCHEMA,
     extend_existing=True
 )

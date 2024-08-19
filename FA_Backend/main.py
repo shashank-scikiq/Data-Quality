@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from functools import lru_cache
 
 import os
-import json
+from datetime import date, datetime
 
 from Logic import base_queries as bq
 from Logic import API_calls as ac
@@ -59,73 +59,65 @@ async def read_root():
     return FileResponse(html_path)
 
 
-@app.get("/api/get/sellers/{date_val}")
-async def sellers_by_mnth(date_val):
-    return "test"
+@app.get("/api/get/sellers")
+async def sellers_by_date(date_val: datetime):
+    resp = bq.get_sellers_by_date(date_val)
+    return resp
 
 
-@app.get("/api/dq_report/top_card/")
-async def top_card():
-    resp = ac.top_cards_delta()
-    # resp = result["dq_report"]["top_card"]
+@app.get("/api/dq_report/top_card")
+async def top_card(date_val: datetime, seller_np: str = None):
+    resp = ac.top_cards_delta(date_val, seller_np)
     return JSONResponse(content=resp)
 
 
-@app.get("/api/dq/missing_percentage/")
-async def missing_percentage():
-    # resp = result["missing_percentage"]
-    resp = ac.missing_percentage()
+@app.get("/api/dq/missing_percentage")
+async def missing_percentage(date_val: datetime, seller_np: str = None):
+    resp = ac.missing_percentage(date_val, seller_np)
     return JSONResponse(content=resp)
 
 
-@app.get("/api/dq_report/trend_1/")
-async def trend_missing_orders():
-    resp = ac.trend_chart()
+@app.get("/api/dq_report/trend_1")
+async def trend_missing_orders(date_val: datetime):
+    resp = ac.trend_chart(date_val)
     return JSONResponse(content=resp)
 
 
-@app.get("/api/dq_report/detail_completed_table_data/")
-async def tbl_detail_completed():
-    resp = ac.detailed_completed_table()
+@app.get("/api/dq_report/detail_completed_table_data")
+async def tbl_detail_completed(date_val: datetime, seller_np: str = None):
+    resp = ac.detailed_completed_table(count=15, start_date=date_val,
+                                       seller_np=seller_np)
     return JSONResponse(content=resp)
 
 
-@app.get("/api/dq_report/detail_cancel_table_data/")
-async def tbl_detail_cancelled():
-    resp = ac.detailed_cancelled_table()
+@app.get("/api/dq_report/detail_cancel_table_data")
+async def tbl_order_stats(date_val: datetime, seller_np: str | None = None):
+    resp = ac.order_stats(start_date=datetime.strptime("2024-08-10", "%Y-%m-%d"),
+                          seller_np=seller_np)
     return JSONResponse(content=resp)
 
 
-@app.get("/api/dq_report/cancel_highest_missing_pid_data/")
+@app.get("/api/dq_report/cancel_highest_missing_pid_data")
 async def cancel_highest_missing_pids():
     resp = ac.missing_per_by_seller()
-    print(resp)
+    # print(resp)
     return JSONResponse(content=resp)
 
 
 # DATA SANITY APIS
-@lru_cache(maxsize=32)
-async def get_ds_last_run_date_report():
-    return ac.data_sanity_last_run_date_report()
-
-
-@app.get("/api/dq_report/data_sanity/last_run_date_data/")
+@app.get("/api/dq_report/data_sanity/last_run_date_data")
 async def get_last_run_date_report():
-    resp = get_ds_last_run_date_report()
+    resp = ac.data_sanity_last_run_date_report()
     return JSONResponse(content=resp)
 
 
-@lru_cache(maxsize=32)
-async def get_ds_variance_report():
-    return ac.ds_variance_data_report()
-
-
-@app.get("/api/dq_report/data_sanity/variance_data/")
+@app.get("/api/dq_report/data_sanity/variance_data")
 async def get_last_run_date_report():
-    resp = get_ds_variance_report()
+    resp = ac.ds_variance_data_report()
     return JSONResponse(content=resp)
 
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="127.0.0.1", port=8000)
