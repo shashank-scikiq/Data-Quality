@@ -92,7 +92,7 @@ async def tbl_detail_completed(date_val: datetime, seller_np: str = None):
 
 @app.get("/api/dq_report/detail_cancel_table_data")
 async def tbl_order_stats(date_val: datetime, seller_np: str | None = None):
-    resp = ac.order_stats(start_date=datetime.strptime("2024-08-10", "%Y-%m-%d"),
+    resp = ac.order_stats(start_date=date_val,
                           seller_np=seller_np)
     return JSONResponse(content=resp)
 

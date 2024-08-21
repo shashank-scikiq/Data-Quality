@@ -32,7 +32,8 @@ order by curr_date desc, ord_date desc, seller_np);
 
 select * from aggregated_view;
 
---REFRESH MATERIALIZED VIEW aggregated_view;
+REFRESH MATERIALIZED VIEW agg_order_stats;
+REFRESH MATERIALIZED VIEW aggregated_view;
 
 
 select * from aggregated_view av where av.ord_date = '2024-06-25';
