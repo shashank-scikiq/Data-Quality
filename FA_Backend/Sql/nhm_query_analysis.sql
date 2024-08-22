@@ -1,14 +1,5 @@
-SELECT * FROM default.nhm_order_fulfillment_subset_v1
-WHERE "Order status" = 'Cancelled'
-AND date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')) = (current_date - interval '1' day)
-AND "seller np name" = 'biz.enstore.com';
-
-SELECT * FROM "default"."nhm_order_fulfillment_subset_v1" LIMIT 10;
-
 
 SELECT DISTINCT "Cancellation Code" FROM default.nhm_order_fulfillment_subset_v1;
-
--- Get T-1 Data from NHM Table. 
 
 select
 	current_date as curr_date,
@@ -38,8 +29,7 @@ select
     SUM(CASE WHEN "Order Status" = 'Cancelled' THEN 1 ELSE 0 END) AS total_canceled_orders
 FROM default.nhm_order_fulfillment_subset_v1
 where
-	date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')) IN (current_date - interval '1' day,current_date - interval '2' day,
-	current_date - interval '3' day,current_date - interval '4' day,current_date - interval '5' day, current_date - interval '6' day, current_date - interval '7' day)
+	date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')) > Date('2024-04-01')
 GROUP by 
 	date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')),
 	"seller np name";
@@ -56,7 +46,7 @@ select
 	"Order Status" AS order_status,
 	"Cancellation code" AS cancellation_code
 from "default"."nhm_order_fulfillment_subset_v1"
-where date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')) = Date('2024-08-10')
+where date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')) > Date('2024-04-01')
 group by 
 	date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')),
 	"seller np name",
@@ -72,14 +62,8 @@ select
 	date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')) AS order_date,
 	"seller np name" AS seller_np
 from "default"."nhm_order_fulfillment_subset_v1"
-where extract(month from date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s'))) = 06
+where date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')) > Date('2024-04-01')
 group by 
 	date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')),
 	"seller np name"
 order by date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')), "seller np name";
-
-
-
--- ========================================================================================================
-
-
