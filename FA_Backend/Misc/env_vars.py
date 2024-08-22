@@ -3,7 +3,7 @@ import os
 import sys
 
 try:
-    ENV_FILE = r"D:\Work\Data-Quality\FA_Backend\.env"
+    ENV_FILE = r".env"
     if os.path.exists(ENV_FILE):
         print("Found File.")
     else:

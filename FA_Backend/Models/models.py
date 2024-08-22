@@ -92,6 +92,7 @@ dq_col_sum = Table(
     ev.COL_SUM,
     meta,
     Column("ord_date", Date, nullable=False),
+    Column("seller_np", String(255), nullable=False),
     Column("total_orders", BIGINT, nullable=False),
     Column("total_canceled_orders", BIGINT, nullable=False),
     Column("null_fulfilment_id", BIGINT, nullable=False),
@@ -99,9 +100,6 @@ dq_col_sum = Table(
     Column("null_qty", BIGINT, nullable=False),
     Column("null_itm_fulfilment_id", BIGINT, nullable=False),
     Column("null_del_pc", BIGINT, nullable=False),
-    Column("null_created_date_time", BIGINT, nullable=False),
-    Column("null_domain", BIGINT, nullable=False),
-    Column("null_del_cty", BIGINT, nullable=False),
     Column("null_cans_code", BIGINT, nullable=False),
     Column("null_cans_dt_time", BIGINT, nullable=False),
     Column("null_ord_stats", BIGINT, nullable=False),
@@ -114,6 +112,7 @@ dq_col_sum = Table(
     Column("null_sell_np", BIGINT, nullable=False),
     Column("null_net_ord_id", BIGINT, nullable=False),
     Column("null_sell_cty", BIGINT, nullable=False),
+    Column("null_del_cty", BIGINT, nullable=False),
     schema=ev.PG_SCHEMA,
     extend_existing=True
 )
@@ -142,11 +141,9 @@ dq_agg_order_stats = Table(
     ev.AGG_ORD_STATS,
     meta,
     Column("order_date", Date, nullable = False),
-    Column("seller_np", String(255), nullable = False),
-    Column("in_progress", INT, nullable=True),
-    Column("completed", INT, nullable=True),
-    Column("cancelled", INT, nullable=True),
-    Column("cancellation_code_missing", INT, nullable=True),
+    Column("order_status", String(50), nullable = False),
+    Column("seller_np", String(255), nullable=True),
+    Column("count", INT, nullable=True),
     schema = ev.PG_SCHEMA,
     extend_existing=True
 )

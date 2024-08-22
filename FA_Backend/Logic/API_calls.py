@@ -6,6 +6,8 @@ from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
 import Logic.base_queries as bq
+from decimal import Decimal
+
 
 cols_dict = {
     "curr_date": "Current Date",
@@ -47,6 +49,21 @@ def calc_metrices(df: pd.DataFrame, col_name: str):
     per_diff = np.round((diff / old_val) * 100, 4)
     return new_val, diff, per_diff
 
+def serialize_decimal(value):
+    """Convert Decimal to float for JSON serialization."""
+    if isinstance(value, Decimal):
+        return float(value)
+    return value
+
+
+def process_data(df):
+    # Ensure all numerical columns are filled and converted properly
+    for x in df.columns:
+        if x not in ["ord_date", "seller_np"]:
+            df[x] = df[x].fillna(0)
+            df[x] = df[x].replace("", 0)
+            df[x] = df[x].astype(int)
+            
 
 def top_cards_delta(start_date: datetime = max_date, seller_np: str = None):
     prev_dt = start_date - timedelta(days=1)
@@ -117,7 +134,7 @@ def missing_per_by_seller(count: int = 5, start_date: datetime = max_date,
     for x in df.index:
         json_frame = {
             "id": df.iloc[x]["seller_np"],
-            "count": np.round(float((df.iloc[x]["missing_percentage"])), 2),
+            "count": str(np.round(float((df.iloc[x]["missing_percentage"]))*100, 2))+"%",
             "increased": True if df.iloc[x]["missing_percentage"] > 0 else "False",
             "variancePercentage": float(threshold * 100), "varianceText": "Threshold"}
         json_str.append(json_frame)
@@ -127,18 +144,11 @@ def missing_per_by_seller(count: int = 5, start_date: datetime = max_date,
 def detailed_completed_table(count: int = 15, start_date: datetime = max_date,
                              seller_np: str | None = None):
     df = bq.query_detailed_completed_table(start_date, count, seller_np)
-    df["missing_percentage"] = df["sum_missing_cols"] / df["total_orders"]
-    df = df.sort_values(by="missing_percentage", ascending=False)
-    json_frame = []
-    for x in df.index:
-        json_str = {
-            "Seller NP": df.loc[x]["seller_np"],
-            "% Missing Orders": np.round(float(df.loc[x]["missing_percentage"]), 2),
-            "Sum of Null Values": int(df.loc[x]["sum_missing_cols"]),
-            "Total Orders": int(df.loc[x]["total_orders"])
-        }
-        json_frame.append(json_str)
-    return json_frame
+    df = df.applymap(serialize_decimal)
+    df["ord_date"] = df["ord_date"].apply(lambda x: x.strftime("%Y-%m-%d") if pd.notnull(x) else x)
+    data = df.to_dict(orient='records')
+    # return {"title": "Detailed Missing Data Table", "data": data}
+    return data
 
 
 def data_sanity_last_run_date_report():
@@ -158,38 +168,49 @@ def ds_variance_data_report():
     return {"title": "Data Variance Report", "data": data}
 
 
-def order_stats(count: int = 15,
+def order_stats(count: int = 100,
                 start_date: datetime = max_date,
                 seller_np: str | None = None):
     result = bq.query_order_stats(start_date=start_date, count=count,
-                                  seller_np=seller_np)
-    if result:
-        df = pd.DataFrame(result)
-        df["cancellation_code_missing"] = df["cancellation_code_missing"].fillna(0).astype(int)
-        df["Total_orders"] = df["in_progress"] + df["completed"] + df["cancelled"]
-        df.sort_values(by=["Total_orders", "cancelled", "cancellation_code_missing"], ascending=False)
-        json_frame = []
-        for x in df.index:
-            json_str = {
-                "Seller NP": df.loc[x]["seller_np"],
-                "Total Orders": int(df.loc[x]["Total_orders"]),
-                "In Progress": int(df.loc[x]["in_progress"]),
-                "Completed": int(df.loc[x]["in_progress"]),
-                "Total Cancellations": int(df.loc[x]["cancelled"]),
-                "Cancellation Code missing": int(df.loc[x]["cancellation_code_missing"])
-            }
-            json_frame.append(json_str)
-    else:
-        json_frame = [{
-            "Seller NP": "NA",
-            "Total Orders": 0,
-            "In Progress": 0,
-            "Completed": 0,
-            "Total Cancellations": 0,
-            "Cancellation Code missing": 0}
-        ]
+                                   seller_np=seller_np)
+    df = pd.DataFrame(result)
+    df["order_date"] = df["order_date"].apply(lambda x: x.strftime("%Y-%m-%d") if pd.notnull(x) else x)
+    data = df.to_dict(orient='records')
+    return data
+    
 
-    return json_frame
+# def order_stats(count: int = 15,
+#                 start_date: datetime = max_date,
+#                 seller_np: str | None = None):
+#     result = bq.query_order_stats(start_date=start_date, count=count,
+#                                   seller_np=seller_np)
+#     if result:
+#         df = pd.DataFrame(result)
+#         df["cancellation_code_missing"] = df["cancellation_code_missing"].fillna(0).astype(int)
+#         df["Total_orders"] = df["in_progress"] + df["completed"] + df["cancelled"]
+#         df.sort_values(by=["Total_orders", "cancelled", "cancellation_code_missing"], ascending=False)
+#         json_frame = []
+#         for x in df.index:
+#             json_str = {
+#                 "Seller NP": df.loc[x]["seller_np"],
+#                 "Total Orders": int(df.loc[x]["Total_orders"]),
+#                 "In Progress": int(df.loc[x]["in_progress"]),
+#                 "Completed": int(df.loc[x]["in_progress"]),
+#                 "Total Cancellations": int(df.loc[x]["cancelled"]),
+#                 "Cancellation Code missing": int(df.loc[x]["cancellation_code_missing"])
+#             }
+#             json_frame.append(json_str)
+#     else:
+#         json_frame = [{
+#             "Seller NP": "NA",
+#             "Total Orders": 0,
+#             "In Progress": 0,
+#             "Completed": 0,
+#             "Total Cancellations": 0,
+#             "Cancellation Code missing": 0}
+#         ]
+
+#     return json_frame
 
 
 def trend_chart(start_date: datetime | None = None):

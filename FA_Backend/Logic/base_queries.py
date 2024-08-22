@@ -1,7 +1,7 @@
 import pandas as pd
 
 from typing import Tuple, Any
-from sqlalchemy import Select, func, and_, or_, desc
+from sqlalchemy import Select, func, and_, or_, desc, asc
 from datetime import date, datetime
 import os
 import sys
@@ -145,14 +145,10 @@ def query_highest_missing_by_seller(curr_dt: datetime, count: int, seller_np: st
 
 
 def query_detailed_completed_table(curr_dt: datetime, count: int, seller_np: str) -> pd.DataFrame:
-    stmt = (Select(
-        dq_agg_sum.c.seller_np,
-        func.sum(dq_agg_sum.c.total_orders).label("total_orders"),
-        func.sum(dq_agg_sum.c.sum_missing_cols).label("sum_missing_cols")).
-            where(and_(dq_agg_sum.c.ord_date == curr_dt,
-                       dq_agg_sum.c.seller_np == seller_np if seller_np else True)).
-            group_by(dq_agg_sum.c.seller_np).
-            order_by(desc(func.sum(dq_agg_sum.c.sum_missing_cols))))
+    stmt = Select(dq_col_sum).where(and_(
+        dq_col_sum.c.ord_date == curr_dt,
+        dq_col_sum.c.seller_np == seller_np if seller_np else True)).order_by(
+            desc(dq_col_sum.c.total_orders))
     result = run_stmt(stmt, count)
     return pd.DataFrame(result)
 
@@ -176,7 +172,7 @@ def query_trend_chart(start_date: datetime) -> pd.DataFrame:
                   func.sum(dq_col_sum.c.null_cat_cons).label("null_cat_cons"),
                   func.sum(dq_col_sum.c.null_cans_code).label("null_cans_code"),
                   func.sum(dq_col_sum.c.null_cans_dt_time).label("null_cans_dt_time")
-                  ).group_by(dq_col_sum.c.ord_date)
+                  ).group_by(dq_col_sum.c.ord_date).order_by(asc(dq_col_sum.c.ord_date))
     result = run_stmt(stmt)
     return pd.DataFrame(result)
 
