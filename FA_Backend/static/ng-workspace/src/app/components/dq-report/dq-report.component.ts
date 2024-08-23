@@ -54,13 +54,16 @@ export class DqReportComponent implements OnInit {
     }
   }
 
-  detailCompletedHighestMissingPIDData: any[] = [];
+  detailCompletedHighestMissingPIDData: any;
 
   detailCompletedTableData: any[] = [];
+  detailCompletedTableTitle: string = '';
 
   detailCancelledTableData: any[] = [];
+  detailCancelledTableTitle: string = '';
 
   trend1: any = null;
+  trend1Title: string = '';
   trend2: any = null;
 
   chartOptions: any = {
@@ -99,6 +102,9 @@ export class DqReportComponent implements OnInit {
   section1TableData: any = null;
   section2TableData: any = null;
 
+  selectedSellerNp: any = 'All';
+  sellerNPs: string[] = ['All'];
+
 
   // >>>>>>>>>>>>>>>>>>>
 
@@ -108,8 +114,9 @@ export class DqReportComponent implements OnInit {
     this.appService.selectedDate$.subscribe((value) => {
       if (value) {
         this.selectedDate = value;
-  
+        this.appService.setSelectedSellerNP('All');
         this.initBoard();
+        this.getSellerNPs();
   
         this.initSanityData();
       }
@@ -135,9 +142,29 @@ export class DqReportComponent implements OnInit {
     )
   }
 
-  async setTrendChart(data: any) {
-    this.trend1 = data;
+  async setTrendChart(res: any) {
+    this.trend1Title = res.title
+    this.trend1 = res.data;
     await delay(100);
+  }
+
+  getSellerNPs() {
+    this.appService.getSellerNpData().subscribe(
+      (response: any) => {
+        if (response) {
+          this.sellerNPs = ['All', ...response];
+          this.selectedSellerNp = 'All';
+        }
+      }, (error: Error) => {
+        console.log(error);
+      }
+    )
+  }
+
+  updateSelectedNp(value: any) {
+    this.selectedSellerNp = value;
+    this.appService.setSelectedSellerNP(value);
+    this.initBoard();
   }
 
   async initBoard() {
@@ -153,7 +180,10 @@ export class DqReportComponent implements OnInit {
 
     this.appService.getDetailCompletedTableData().subscribe(
       (response: any) => {
-        this.detailCompletedTableData = response;
+        if (response) {
+          this.detailCompletedTableData = response.data;
+          this.detailCompletedTableTitle = response.title;
+        }
       }, (error: Error) => {
         console.log(error);
       }
@@ -161,7 +191,11 @@ export class DqReportComponent implements OnInit {
 
     this.appService.getDetailCancelTableData().subscribe(
       (response: any) => {
-        this.detailCancelledTableData = response;
+        if (response) {
+          this.detailCancelledTableData = response.data;
+          this.detailCancelledTableTitle = response.title;
+
+        }
       }, (error: Error) => {
         console.log(error);
       }

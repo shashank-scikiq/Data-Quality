@@ -154,12 +154,16 @@
         width: 100%;
         flex-wrap: wrap;
 
+        margin: 8px 0 16px;
         .highest-container {
             display: flex;
             flex-direction: column;
             gap: 4px;
             width: 100%;
             max-width: 300px;
+            border: 1px solid rgba(72, 94, 144, 0.16);
+            padding: 4px 8px;
+            border-radius: 4px;
 
             .id {
                 color: $grey800;
@@ -274,4 +278,60 @@
         transform: scale(1);
       }
     }
+
+    table {
+        table-layout: fixed; /* Force cells to respect the width constraints */
+        width: 100%; /* Ensure the table takes the full width */
+      }
+      
+      th, td {
+        min-width: 120px; /* Minimum width for each cell */
+        max-width: 240px; /* Maximum width for each cell */
+        // overflow: hidden; /* Hide overflowing content */
+        // text-overflow: ellipsis; /* Show ellipsis for overflowing text */
+        // white-space: nowrap; /* Prevent text wrapping */
+        padding: 8px; /* Add some padding for better readability */
+      }
+      
+      th {
+        text-align: left; /* Align header text to the left */
+      }
+      
   }
+
+.filter-section {
+    display: flex;
+    place-content: center;
+    align-items: center;
+    gap: 12px;
+}
+
+.seller-np-selector {
+    position: relative;
+
+    .title {
+        position: absolute;
+        cursor: text;
+        font-size: 75%;
+        opacity: 1;
+        -webkit-transition: all 0.2s;
+        transition: all 0.2s;
+        top: -0.5em;
+        left: 0.5rem;
+        z-index: 1;
+        line-height: 1;
+        padding: 0 4px;
+        background-color: #ffffff;
+        color: #707070;
+    }
+}
+
+.ant-select {
+    width: 200px !important;
+    border-radius: 8px !important;
+}
+::ng-deep {
+    .ant-select:not(.ant-select-customize-input) .ant-select-selector {
+        border-radius: 4px;
+    }
+}

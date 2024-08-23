@@ -11,7 +11,19 @@
             <div class="heading-section margin-y-3">
                 <p class="margin-0 font-md font-bolder">Data quality report</p>
                 @if(selectedDate) {
-                <app-date-picker [selectedDate]="selectedDate" (selectedDateRange)="setSelectedDate($event)" />
+                    <div class="filter-section">
+                        <div class="seller-np-selector">
+                            <nz-select nzsize="small"
+                                [(ngModel)]="selectedSellerNp"
+                                (ngModelChange)="updateSelectedNp($event)">
+                                    @for(option of sellerNPs; track option) {
+                                        <nz-option [nzValue]="option" [nzLabel]="option"></nz-option>
+                                    }
+                            </nz-select>
+                            <p class="title">Choose Seller NP</p>
+                        </div>
+                    <app-date-picker [selectedDate]="selectedDate" (selectedDateRange)="setSelectedDate($event)" />
+                    </div>
                 }
             </div>
 
@@ -55,20 +67,22 @@
             <div class="detail-completed-section margin-y-3">
                 <p class="margin-0">Detail Completed</p>
                 <div>
-                    <p class="margin-0 font-xxs">Sellers with Highest Missing Provider ID.</p>
-                    <div class="highest-section">
-                        @for(data of detailCompletedHighestMissingPIDData; track data) {
-                        <div class="highest-container">
-                            <p class="margin-0 id">{{data.id}}</p>
-                            <p class="margin-0 percentage">{{data.count}}</p>
-                            <p [class]="'margin-0 sub-text ' + (data.increased ? 'positive' : 'negative')">
-                                {{data.variancePercentage}}
-                                <i [class]="'fa-solid '+ (data.increased ? 'fa-arrow-up' : 'fa-arrow-down')"></i>
-                                {{data.varianceText}}
-                            </p>
+                    <p class="margin-0 font-xxs">{{detailCompletedHighestMissingPIDData?.title}}</p>
+                    @if(detailCompletedHighestMissingPIDData?.data?.length) {
+                        <div class="highest-section">
+                            @for(data of detailCompletedHighestMissingPIDData.data; track data) {
+                            <div class="highest-container">
+                                <p class="margin-0 id">{{data?.id}}</p>
+                                <p class="margin-0 percentage">{{data?.count}}</p>
+                                <p [class]="'margin-0 sub-text ' + (data?.increased ? 'positive' : 'negative')">
+                                    {{data?.variancePercentage}}
+                                    <i [class]="'fa-solid '+ (data?.increased ? 'fa-arrow-up' : 'fa-arrow-down')"></i>
+                                    {{data?.varianceText}}
+                                </p>
+                            </div>
+                            }
                         </div>
-                        }
-                    </div>
+                    }
                 </div>
 
                 @if(!isDetailCompletedTableDataloaded) {
@@ -79,23 +93,23 @@
                 </div>
                 }
                 @else {
+                    <p class="margin-0 font-xxs">{{detailCompletedTableTitle}}</p>
                 <div class="table-container">
                     <nz-table [nzFrontPagination]="false" #middleTable nzSize="small"
-                        [nzData]="detailCompletedTableData">
+                        [nzData]="detailCompletedTableData" [nzScroll]="{ x: '100vw', y: '240px' }">
                         <thead>
                             <tr>
-                                <th *ngFor="let header of (detailCompletedTableData.length ? object.keys(detailCompletedTableData[0]) : [])"
+                                <th nzWidth="240px" *ngFor="let header of (detailCompletedTableData.length ? object.keys(detailCompletedTableData[0]) : [])"
                                     style="background-color: white; color: #8392a5; font-weight: 500;">{{header}}</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr *ngFor="let data of middleTable.data;  let i = index"
                                 [ngStyle]="{'background': i%2 != 0 ? '#e5e9f2' : '#ffffff'}">
-                                <td style="min-width: 120px"
+                                <td  style="min-width: 120px"
                                     *ngFor="let header of (detailCompletedTableData.length ? object.keys(detailCompletedTableData[0]) : [])">
-                                    {{
-                                    data[header]
-                                    }}</td>
+                                    {{ data[header] }}
+                                </td>
                             </tr>
                         </tbody>
                     </nz-table>
@@ -105,7 +119,7 @@
             </div>
 
             <div class="trend-section margin-y-3">
-                <p class="text-bold">Trend</p>
+                <p class="text-bold">{{trend1Title}}</p>
                 <div class="trend-container">
                     @if(trend1?.series?.length && trend1?.categories?.length) {
                     <div >
@@ -130,7 +144,7 @@
 
             <div class="detail-completed-section margin-y-3">
                 <p class="margin-0">Detail Cancelled</p>
-                <p class="margin-0 font-xxs">Sellers with Highest Missing Item Category</p>
+                <p class="margin-0 font-xxs">{{detailCancelledTableTitle}}</p>
 
                 @if(!isDetailCompletedTableDataloaded) {
                 <div class="loading-container">
@@ -142,7 +156,7 @@
                 @else {
                 <div class="table-container">
                     <nz-table [nzFrontPagination]="false" #middleTable nzSize="small"
-                        [nzData]="detailCancelledTableData">
+                        [nzData]="detailCancelledTableData" [nzScroll]="{ x: '100vw', y: '240px' }">
                         <thead>
                             <tr>
                                 <th *ngFor="let header of (detailCancelledTableData.length ? object.keys(detailCancelledTableData[0]) : [])"

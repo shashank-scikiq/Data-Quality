@@ -149,8 +149,8 @@ def detailed_completed_table(count: int = 15, start_date: datetime = max_date,
     df = df.map (serialize_decimal)
     df["ord_date"] = df["ord_date"].apply(lambda x: x.strftime("%Y-%m-%d") if pd.notnull(x) else x)
     data = df.to_dict(orient='records')
-    # return {"title": "Detailed Missing Data Table", "data": data}
-    return data
+    return {"title": "Detailed Missing Data Table", "data": data}
+    # return data
 
 
 def data_sanity_last_run_date_report():
@@ -178,7 +178,7 @@ def order_stats(count: int = 100,
     df = pd.DataFrame(result)
     df["order_date"] = df["order_date"].apply(lambda x: x.strftime("%Y-%m-%d") if pd.notnull(x) else x)
     data = df.to_dict(orient='records')
-    return data
+    return {"title": "Sellers with Highest Missing Item Category", "data": data}
     
 
 def trend_chart(start_date: datetime | None = None):
