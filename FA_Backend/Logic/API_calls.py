@@ -13,10 +13,10 @@ cols_dict = {
     "curr_date": "Current Date",
     "ord_date": "Order Date",
     "seller_np": "Seller NP",
-    "null_fulfilment_id": "Fulfilment ID",
+    "null_fulfilment_id": "Fulfillment ID",
     "null_net_tran_id": "Net Transaction ID",
     "null_qty": "Quantity",
-    "null_itm_fulfilment_id": "Item Fulfilment ID",
+    "null_itm_fulfilment_id": "Item Fulfillment ID",
     "null_del_pc": "Delivery Pincode",
     "null_created_date_time": "Created Date",
     "null_domain": "Domain",
@@ -24,7 +24,7 @@ cols_dict = {
     "null_cans_code": "Cancellation Code",
     "null_cans_dt_time": "Cancellation Date",
     "null_ord_stats": "Order Status",
-    "null_fulfil_status": "Fulfilment Status",
+    "null_fulfil_status": "Fulfillment Status",
     "null_itm_cat": "Item Category",
     "null_cat_cons": "Category",
     "null_sell_pincode": "Seller Pincode",
@@ -42,12 +42,13 @@ max_date = bq.get_date_range()[1]
 # def_sell_np = None
 
 
-def calc_metrices(df: pd.DataFrame, col_name: str):
+def calc_metrics(df: pd.DataFrame, col_name: str):
     old_val = np.round(df[col_name][1], 4)
     new_val = np.round(df[col_name][0], 4)
     diff = new_val - old_val
     per_diff = np.round((diff / old_val) * 100, 4)
     return new_val, diff, per_diff
+
 
 def serialize_decimal(value):
     """Convert Decimal to float for JSON serialization."""
@@ -72,36 +73,36 @@ def top_cards_delta(start_date: datetime = max_date, seller_np: str = None):
     df_temp.loc[:, "Cancelled_Orders"] = df_temp["Cancelled_Orders"].astype(int)
     df_temp["Cancel_percentage"] = df_temp["Cancelled_Orders"] / df_temp["Total_Orders"]
     df_temp["Completed_percentage"] = (df_temp["Total_Orders"] - df_temp["Cancelled_Orders"]) / df_temp["Total_Orders"]
-    tt, td, tp = calc_metrices(df_temp, "Total_Orders")
-    tc, cd, cp = calc_metrices(df_temp, "Cancelled_Orders")
-    cct, ccd, ccp = calc_metrices(df_temp, "Cancel_percentage")
-    cot, cod, cop = calc_metrices(df_temp, "Completed_percentage")
+    tt, td, tp = calc_metrics(df_temp, "Total_Orders")
+    tc, cd, cp = calc_metrics(df_temp, "Cancelled_Orders")
+    cct, ccd, ccp = calc_metrics(df_temp, "Cancel_percentage")
+    cot, cod, cop = calc_metrics(df_temp, "Completed_percentage")
     total_orders = {
         "title": "Total Orders",
         "count": str(tt),
         "increased": False if td < 0 else True,
-        "variancePercentage": str(tp),
+        "variancePercentage": str(np.round(tp,2)),
         "varianceText": "vs Yesterday"
     }
     total_cancellation = {
         "title": "Cancelled Orders",
         "count": str(tc),
         "increased": False if cd < 0 else True,
-        "variancePercentage": str(cp),
+        "variancePercentage": str(np.round(cp,2)),
         "varianceText": "vs Yesterday"
     }
     cancel_percentage = {
         "title": "Order Cancellation %",
         "count": str(cct),
         "increased": False if ccd < 0 else True,
-        "variancePercentage": str(ccp),
+        "variancePercentage": str(np.round(ccp,2)),
         "varianceText": "vs Yesterday"
     }
     compl_percentage = {
         "title": "Order Completion %",
         "count": str(cot),
         "increased": False if cod < 0 else True,
-        "variancePercentage": str(cop),
+        "variancePercentage": str(np.round(cop,2)               ),
         "varianceText": "vs Yesterday"
     }
     final_list = [total_orders, total_cancellation, cancel_percentage, compl_percentage]
@@ -145,7 +146,7 @@ def missing_per_by_seller(count: int = 5, start_date: datetime = max_date,
 def detailed_completed_table(count: int = 15, start_date: datetime = max_date,
                              seller_np: str | None = None):
     df = bq.query_detailed_completed_table(start_date, count, seller_np)
-    df = df.applymap(serialize_decimal)
+    df = df.map (serialize_decimal)
     df["ord_date"] = df["ord_date"].apply(lambda x: x.strftime("%Y-%m-%d") if pd.notnull(x) else x)
     data = df.to_dict(orient='records')
     return {"title": "Detailed Missing Data Table", "data": data}
@@ -163,7 +164,7 @@ def data_sanity_last_run_date_report():
 
 def ds_variance_data_report():
     df = bq.query_data_variance_report()
-    # df['month'] = df['month'].str.replace(" 00:00:00", "")
+    df['month'] = df['month'].str.replace(" 00:00:00", "")
     df['month'] = pd.to_datetime(df['month']).dt.strftime('%b %Y')
     data = df.to_dict(orient='records')
     return {"title": "Data Variance Report", "data": data}
