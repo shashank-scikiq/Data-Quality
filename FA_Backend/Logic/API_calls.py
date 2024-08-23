@@ -32,7 +32,9 @@ cols_dict = {
     "null_itm_id": "Item ID",
     "null_sell_np": "Null Seller NP",
     "null_net_ord_id": "Network Order ID",
-    "null_sell_cty": "Seller City"
+    "null_sell_cty": "Seller City",
+    "total_orders" : "Total Orders",
+    "total_canceled_orders" : "Cancelled Orders"
 }
 
 # Default Filter is Date and Seller NP name. Will Go Across all.
@@ -131,6 +133,7 @@ def missing_per_by_seller(count: int = 5, start_date: datetime = max_date,
     df = bq.query_highest_missing_by_seller(start_date, count, seller_np)
     df["missing_percentage"] = df["missing_val"] / df["total_orders"]
     df = df.sort_values(by="missing_percentage", ascending=False)
+    df.reset_index(drop=True, inplace=True)
     json_str = []
     for x in df.index:
         json_frame = {
@@ -139,7 +142,8 @@ def missing_per_by_seller(count: int = 5, start_date: datetime = max_date,
             "increased": True if df.iloc[x]["missing_percentage"] > 0 else "False",
             "variancePercentage": float(threshold * 100), "varianceText": "Threshold"}
         json_str.append(json_frame)
-    data = {"title": df.iloc[0]["seller_np"], "data": json_str}
+        
+    data = {"title": "Top Sellers by total Missing Data", "data": json_str}
     return data
 
 
@@ -148,9 +152,14 @@ def detailed_completed_table(count: int = 15, start_date: datetime = max_date,
     df = bq.query_detailed_completed_table(start_date, count, seller_np)
     df = df.map (serialize_decimal)
     df["ord_date"] = df["ord_date"].apply(lambda x: x.strftime("%Y-%m-%d") if pd.notnull(x) else x)
+    
+    numeric_cols = [x for x in df.columns if x not in ["ord_date", "seller_np", "total_orders"]]
+    for col in numeric_cols:
+        df[col] = ((df[col] / df['total_orders']) * 100).round(2) 
+        
+    df.columns = [cols_dict[col]+" %" if col not in ["ord_date","seller_np","total_orders"] else cols_dict[col] for col in df.columns]
     data = df.to_dict(orient='records')
     return {"title": "Detailed Missing Data Table", "data": data}
-    # return data
 
 
 def data_sanity_last_run_date_report():
@@ -177,7 +186,14 @@ def order_stats(count: int = 100,
                                    seller_np=seller_np)
     df = pd.DataFrame(result)
     df["order_date"] = df["order_date"].apply(lambda x: x.strftime("%Y-%m-%d") if pd.notnull(x) else x)
-    data = df.to_dict(orient='records')
+    df_tot = df[["order_date","seller_np","count"]].groupby(by=["order_date","seller_np"]).sum().reset_index()
+    final_df = pd.merge(left= df,
+         right= df_tot,
+        on=["order_date","seller_np"])
+    final_df["Percentage"] = np.round((final_df["count_x"] / final_df["count_y"])*100,2)
+    final_df = final_df[["order_date","seller_np","order_status","Percentage"]]
+    final_df.columns = ["Order Date", "Seller NP", "Order Status", "Percentage"]
+    data = final_df.to_dict(orient='records')
     return {"title": "Sellers with Highest Missing Item Category", "data": data}
     
 
@@ -188,6 +204,10 @@ def trend_chart(start_date: datetime | None = None):
         'series': [],
         'categories': []
     }
+    
+    curr_mnth = datetime.now().month
+    df = df[df["ord_date"].apply(lambda x: x.month) >= curr_mnth - 3]
+    
     for col in df.columns:
         if col == 'ord_date':
             final_json['categories'] = df[col].astype(str).tolist()
