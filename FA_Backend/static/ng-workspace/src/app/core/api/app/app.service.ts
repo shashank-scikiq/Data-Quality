@@ -32,6 +32,8 @@ export class AppService {
 
   stateAndDistrictData = new BehaviorSubject<any>(null);
 
+  selectedSellerNP = new BehaviorSubject<any>('All');
+
 
   constructor(private http: HttpClient) {
     this.baseUrl = `${environment.serverUrl}`;
@@ -40,6 +42,10 @@ export class AppService {
 
   setMetrix(value: any) {
     this.metrix.next(value);
+  }
+
+  setSelectedSellerNP(value: string) {
+    this.selectedSellerNP.next(value);
   }
 
   setStateAndDistrictData(value: any) {
@@ -111,31 +117,34 @@ export class AppService {
     this.cancelTrend1Previous$.next();
     let date_val = this.formatDate(this.selectedDate.value);
     const params = {
-      date_val
+      date_val,
+      seller_np: this.selectedSellerNP.value === 'All' ? '' : this.selectedSellerNP.value
     }
     return this.http.get(this.baseUrl + `api/dq_report/trend_1/`, {params}).pipe(
       takeUntil(this.cancelTrend1Previous$)
     );
   }
 
-  private cancelTrend2Previous$ = new Subject<void>();
-  getTrend2Data() {
-    this.cancelTrend2Previous$.next();
-    let date_val = this.formatDate(this.selectedDate.value);
-    const params = {
-      date_val
-    }
-    return this.http.get(this.baseUrl + `api/dq_report/trend_2/`, {params}).pipe(
-      takeUntil(this.cancelTrend2Previous$)
-    );
-  }
+  // private cancelTrend2Previous$ = new Subject<void>();
+  // getTrend2Data() {
+  //   this.cancelTrend2Previous$.next();
+  //   let date_val = this.formatDate(this.selectedDate.value);
+  //   const params = {
+  //     date_val,
+  //     seller_np: this.selectedSellerNP.value === 'All' ? '' : this.selectedSellerNP.value
+  //   }
+  //   return this.http.get(this.baseUrl + `api/dq_report/trend_2/`, {params}).pipe(
+  //     takeUntil(this.cancelTrend2Previous$)
+  //   );
+  // }
 
   private cancelDetailCompletedTableDataPrevious$ = new Subject<void>();
   getDetailCompletedTableData() {
     this.cancelDetailCompletedTableDataPrevious$.next();
     let date_val = this.formatDate(this.selectedDate.value);
     const params = {
-      date_val
+      date_val,
+      seller_np: this.selectedSellerNP.value === 'All' ? '' : this.selectedSellerNP.value
     }
     return this.http.get(this.baseUrl + `api/dq_report/detail_completed_table_data/`, {params}).pipe(
       takeUntil(this.cancelDetailCompletedTableDataPrevious$)
@@ -148,7 +157,8 @@ export class AppService {
     this.cancelDetailCancelTableDataPrevious$.next();
     let date_val = this.formatDate(this.selectedDate.value);
     const params = {
-      date_val
+      date_val,
+      seller_np: this.selectedSellerNP.value === 'All' ? '' : this.selectedSellerNP.value
     }
     return this.http.get(this.baseUrl + `api/dq_report/detail_cancel_table_data/`, {params}).pipe(
       takeUntil(this.cancelDetailCancelTableDataPrevious$)
@@ -160,7 +170,8 @@ export class AppService {
     this.cancelHighestMissingPIDPrevious$.next();
     let date_val = this.formatDate(this.selectedDate.value);
     const params = {
-      date_val
+      date_val,
+      seller_np: this.selectedSellerNP.value === 'All' ? '' : this.selectedSellerNP.value
     }
     return this.http.get(this.baseUrl + `api/dq_report/cancel_highest_missing_pid_data/`, {params}).pipe(
       takeUntil(this.cancelHighestMissingPIDPrevious$)
@@ -173,7 +184,8 @@ export class AppService {
     this.cancelRadialChartrevious$.next();
     let date_val = this.formatDate(this.selectedDate.value);
     const params = {
-      date_val
+      date_val,
+      seller_np: this.selectedSellerNP.value === 'All' ? '' : this.selectedSellerNP.value
     }
     return this.http.get(this.baseUrl + `api/dq/missing_percentage/`, {params}).pipe(
       takeUntil(this.cancelRadialChartrevious$)
@@ -185,10 +197,23 @@ export class AppService {
     this.cancelDQTopCardPrevious$.next();
     let date_val = this.formatDate(this.selectedDate.value);
     const params = {
-      date_val
+      date_val,
+      seller_np: this.selectedSellerNP.value === 'All' ? '' : this.selectedSellerNP.value
     }
     return this.http.get(this.baseUrl + `api/dq_report/top_card/`, {params}).pipe(
       takeUntil(this.cancelDQTopCardPrevious$)
+    );
+  }
+
+  private cancelSellerNpPrevious$ = new Subject<void>();
+  getSellerNpData() {
+    this.cancelSellerNpPrevious$.next();
+    let date_val = this.formatDate(this.selectedDate.value);
+    const params = {
+      date_val
+    }
+    return this.http.get(this.baseUrl + `api/dq_report/sellers_np/`, {params}).pipe(
+      takeUntil(this.cancelSellerNpPrevious$)
     );
   }
 

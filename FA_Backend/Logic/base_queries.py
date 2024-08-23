@@ -180,7 +180,7 @@ def query_trend_chart(start_date: datetime) -> pd.DataFrame:
 
 def query_data_sanity_last_run_date_report() -> pd.DataFrame:
     stmt = Select(ds_last_run_date).where(
-        ds_last_run_date.c.month > datetime.strptime(ev.DS_START_DATE, "%Y-%m-%d"))
+        ds_last_run_date.c.month > ev.DS_START_DATE)
     result = run_stmt(stmt)
     df = pd.DataFrame(result)
     return df
