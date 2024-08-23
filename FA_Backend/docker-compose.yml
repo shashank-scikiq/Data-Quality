@@ -1,0 +1,17 @@
+services:
+  webapp_83:
+    container_name: webapp_83
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: webapp_dev:version_1.0.0
+    ports:
+      - "8083:8001"
+    env_file:
+      - .env
+    restart: unless-stopped
+    environment:
+      - POSTGRES_SCHEMA=dev_v3
+    volumes:
+      - /home/shashank_daaslabs/OD_DB_Files:/mnt/data
+      - /home/shashank_daaslabs/Software/ec2_common.env:/mnt/env/ec2_common.env
