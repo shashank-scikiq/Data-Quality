@@ -67,10 +67,10 @@
             <div class="detail-completed-section margin-y-3">
                 <p class="margin-0">Detail Completed</p>
                 <div>
-                    <p class="margin-0 font-xxs">{{detailCompletedTableTitle}}</p>
-                    @if(detailCompletedHighestMissingPIDData.length) {
+                    <p class="margin-0 font-xxs">{{detailCompletedHighestMissingPIDData?.title}}</p>
+                    @if(detailCompletedHighestMissingPIDData?.data?.length) {
                         <div class="highest-section">
-                            @for(data of detailCompletedHighestMissingPIDData; track data) {
+                            @for(data of detailCompletedHighestMissingPIDData.data; track data) {
                             <div class="highest-container">
                                 <p class="margin-0 id">{{data?.id}}</p>
                                 <p class="margin-0 percentage">{{data?.count}}</p>
@@ -93,6 +93,7 @@
                 </div>
                 }
                 @else {
+                    <p class="margin-0 font-xxs">{{detailCompletedTableTitle}}</p>
                 <div class="table-container">
                     <nz-table [nzFrontPagination]="false" #middleTable nzSize="small"
                         [nzData]="detailCompletedTableData" [nzScroll]="{ x: '100vw', y: '240px' }">

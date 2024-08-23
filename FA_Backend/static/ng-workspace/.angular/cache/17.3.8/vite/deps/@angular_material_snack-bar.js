@@ -13,26 +13,10 @@ import {
   MatCommonModule
 } from "./chunk-TMD5UM2T.js";
 import {
-  LiveAnnouncer
-} from "./chunk-P7AOXX5O.js";
-import {
-  BreakpointObserver,
-  Breakpoints
-} from "./chunk-VU67VIDV.js";
-import "./chunk-NHPFMYPC.js";
-import {
   Overlay,
   OverlayConfig,
   OverlayModule
-} from "./chunk-U234R6OD.js";
-import "./chunk-VL3DADES.js";
-import "./chunk-RUAHOJLU.js";
-import "./chunk-EH3DTZSU.js";
-import "./chunk-237XUEJ5.js";
-import "./chunk-IZVQILT3.js";
-import {
-  Platform
-} from "./chunk-FIYX3P2C.js";
+} from "./chunk-V3OSX34K.js";
 import {
   BasePortalOutlet,
   CdkPortalOutlet,
@@ -40,6 +24,22 @@ import {
   PortalModule,
   TemplatePortal
 } from "./chunk-NTUGGADQ.js";
+import "./chunk-VL3DADES.js";
+import "./chunk-RUAHOJLU.js";
+import {
+  LiveAnnouncer
+} from "./chunk-P7AOXX5O.js";
+import {
+  BreakpointObserver,
+  Breakpoints
+} from "./chunk-VU67VIDV.js";
+import "./chunk-NHPFMYPC.js";
+import "./chunk-EH3DTZSU.js";
+import "./chunk-237XUEJ5.js";
+import "./chunk-IZVQILT3.js";
+import {
+  Platform
+} from "./chunk-FIYX3P2C.js";
 import {
   DOCUMENT
 } from "./chunk-KAW75WPJ.js";
