@@ -138,7 +138,8 @@ def missing_per_by_seller(count: int = 5, start_date: datetime = max_date,
             "increased": True if df.iloc[x]["missing_percentage"] > 0 else "False",
             "variancePercentage": float(threshold * 100), "varianceText": "Threshold"}
         json_str.append(json_frame)
-    return json_str
+    data = {"title": df.iloc[0]["seller_np"], "data": json_str}
+    return data
 
 
 def detailed_completed_table(count: int = 15, start_date: datetime = max_date,

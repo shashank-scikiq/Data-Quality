@@ -173,6 +173,7 @@ def query_trend_chart(start_date: datetime) -> pd.DataFrame:
                   func.sum(dq_col_sum.c.null_cans_code).label("null_cans_code"),
                   func.sum(dq_col_sum.c.null_cans_dt_time).label("null_cans_dt_time")
                   ).group_by(dq_col_sum.c.ord_date).order_by(asc(dq_col_sum.c.ord_date))
+
     result = run_stmt(stmt)
     return pd.DataFrame(result)
 
