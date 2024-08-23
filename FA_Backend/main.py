@@ -59,45 +59,45 @@ async def read_root():
     return FileResponse(html_path)
 
 
-@app.get("/api/get/sellers")
+@app.get("/api/dq_report/sellers_np/")
 async def sellers_by_date(date_val: datetime):
     resp = bq.get_sellers_by_date(date_val)
     return resp
 
 
-@app.get("/api/dq_report/top_card")
+@app.get("/api/dq_report/top_card/")
 async def top_card(date_val: datetime, seller_np: str = None):
     resp = ac.top_cards_delta(date_val, seller_np)
     return JSONResponse(content=resp)
 
 
-@app.get("/api/dq/missing_percentage")
+@app.get("/api/dq/missing_percentage/")
 async def missing_percentage(date_val: datetime, seller_np: str = None):
     resp = ac.missing_percentage(date_val, seller_np)
     return JSONResponse(content=resp)
 
 
-@app.get("/api/dq_report/trend_1")
+@app.get("/api/dq_report/trend_1/")
 async def trend_missing_orders(date_val: datetime):
     resp = ac.trend_chart(date_val)
-    return JSONResponse(content=resp)
+    return JSONResponse(content={"title": "Trend of missing values of last three month", "data": resp})
 
 
-@app.get("/api/dq_report/detail_completed_table_data")
+@app.get("/api/dq_report/detail_completed_table_data/")
 async def tbl_detail_completed(date_val: datetime, seller_np: str = None):
     resp = ac.detailed_completed_table(count=15, start_date=date_val,
                                        seller_np=seller_np)
     return JSONResponse(content=resp)
 
 
-@app.get("/api/dq_report/detail_cancel_table_data")
+@app.get("/api/dq_report/detail_cancel_table_data/")
 async def tbl_order_stats(date_val: datetime, seller_np: str | None = None):
     resp = ac.order_stats(start_date=date_val,
                           seller_np=seller_np)
     return JSONResponse(content=resp)
 
 
-@app.get("/api/dq_report/cancel_highest_missing_pid_data")
+@app.get("/api/dq_report/cancel_highest_missing_pid_data/")
 async def cancel_highest_missing_pids():
     resp = ac.missing_per_by_seller()
     # print(resp)
@@ -105,13 +105,13 @@ async def cancel_highest_missing_pids():
 
 
 # DATA SANITY APIS
-@app.get("/api/dq_report/data_sanity/last_run_date_data")
+@app.get("/api/dq_report/data_sanity/last_run_date_data/")
 async def get_last_run_date_report():
     resp = ac.data_sanity_last_run_date_report()
     return JSONResponse(content=resp)
 
 
-@app.get("/api/dq_report/data_sanity/variance_data")
+@app.get("/api/dq_report/data_sanity/variance_data/")
 async def get_last_run_date_report():
     resp = ac.ds_variance_data_report()
     return JSONResponse(content=resp)
