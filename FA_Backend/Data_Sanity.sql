@@ -1254,7 +1254,7 @@ select date_format(date_parse(cast("Date" as varchar) , '%Y-%m-%d'), '%Y-%m') as
     a.motorable_distance ,
     a.motorable_distance_type,
     b."Network order id" as "retail_noi",
-    b."Accepted at"
+    b."Accepted at"                     
     from {DATABASE}.shared_logistics_item_fulfillment_view_with_date a
     LEFT join table2 b ON upper(a.network_retail_order_id) = upper(b."network order id")
     WHERE date(date_parse(a.order_created_at,'%Y-%m-%dT%H:%i:%s')) >= DATE('2024-05-01')
