@@ -18,97 +18,97 @@ connection_url = f'postgresql+psycopg2://{DB_USER_SOURCE}:{DB_PASSWORD_SOURCE}@{
 
 # for data sanity for the last run date
 data_sanity_last_run_date_query = f"""
-    WITH base_data AS (
+        WITH base_data AS (
+                SELECT
+                    month,
+                    sub_domain_name as sub_domain,
+                    dashboard,
+                    distinct_order_count as doc,
+                    distinct_order_count_till_last_run_date as doctlrd,
+                    run_date, last_run_date
+    
+                FROM
+                {DB_SCHEMA_SOURCE}.{DATA_SANITY_TBL} where run_date = (select max(run_date) from {DB_SCHEMA_SOURCE}.{DATA_SANITY_TBL})
+            ),
+            pivot_data AS (
+                SELECT
+                    month,
+                    MAX(CASE WHEN dashboard = 'NO_with_base_query' AND sub_domain = 'B2C' THEN doc ELSE 0 END) -
+                    MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'B2C' THEN doc ELSE 0 END) AS NO_OD_B2C,
+                    
+                    MAX(CASE WHEN dashboard = 'NO_with_base_query' AND sub_domain = 'B2B' THEN doc ELSE 0 END) -
+                    MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'B2B' THEN doc ELSE 0 END) AS NO_OD_B2B,
+                    
+                    MAX(CASE WHEN dashboard = 'NO_with_base_query' AND sub_domain = 'GV' THEN doc ELSE 0 END) -
+                    MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'GV' THEN doc ELSE 0 END) AS NO_OD_GV,
+                    
+                    MAX(CASE WHEN dashboard = 'NO_with_base_query' AND sub_domain = 'Logistics' THEN doc ELSE 0 END) -
+                    MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'Logistics' THEN doc ELSE 0 END) AS NO_OD_Logistics,
+                    
+                    MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'B2C' THEN doc ELSE 0 END) -
+                    MAX(CASE WHEN dashboard = 'OD_with_L1_query' AND sub_domain = 'B2C' THEN doc ELSE 0 END) AS OD_L1_B2C,
+                    
+                    MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'B2B' THEN doc ELSE 0 END) -
+                    MAX(CASE WHEN dashboard = 'OD_with_L1_query' AND sub_domain = 'B2B' THEN doc ELSE 0 END) AS OD_L1_B2B,
+                    
+                    MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'GV' THEN doc ELSE 0 END) -
+                    MAX(CASE WHEN dashboard = 'OD_with_L1_query' AND sub_domain = 'GV' THEN doc ELSE 0 END) AS OD_L1_GV,
+                    
+                    MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'Logistics' THEN doc ELSE 0 END) -
+                    MAX(CASE WHEN dashboard = 'OD_with_L1_query' AND sub_domain = 'Logistics' THEN doc ELSE 0 END) AS OD_L1_Logistics,
+                    
+                    MAX(CASE WHEN dashboard = 'OD_with_L1_query' AND sub_domain = 'B2C' THEN doc ELSE 0 END) -
+                    MAX(CASE WHEN dashboard = 'OD_with_L2_query' AND sub_domain = 'B2C' THEN doc ELSE 0 END) AS L1_L2_B2C,
+                    
+                    MAX(CASE WHEN dashboard = 'OD_with_L1_query' AND sub_domain = 'B2B' THEN doc ELSE 0 END) -
+                    MAX(CASE WHEN dashboard = 'OD_with_L2_query' AND sub_domain = 'B2B' THEN doc ELSE 0 END) AS L1_L2_B2B,
+                    
+                    MAX(CASE WHEN dashboard = 'OD_with_L1_query' AND sub_domain = 'GV' THEN doc ELSE 0 END) -
+                    MAX(CASE WHEN dashboard = 'OD_with_L2_query' AND sub_domain = 'GV' THEN doc ELSE 0 END) AS L1_L2_GV,
+                    
+                    MAX(CASE WHEN dashboard = 'OD_with_L1_query' AND sub_domain = 'Logistics' THEN doc ELSE 0 END) -
+                    MAX(CASE WHEN dashboard = 'OD_with_L2_query' AND sub_domain = 'Logistics' THEN doc ELSE 0 END) AS L1_L2_Logistics,
+                    
+                    MAX(CASE WHEN dashboard = 'OD_with_L2_query' AND sub_domain = 'B2C' THEN doc ELSE 0 END) -
+                    MAX(CASE WHEN dashboard = 'OD_with_L3_query' AND sub_domain = 'B2C' THEN doc ELSE 0 END) AS L2_L3_B2C,
+                    
+                    MAX(CASE WHEN dashboard = 'OD_with_L2_query' AND sub_domain = 'B2B' THEN doc ELSE 0 END) -
+                    MAX(CASE WHEN dashboard = 'OD_with_L3_query' AND sub_domain = 'B2B' THEN doc ELSE 0 END) AS L2_L3_B2B,
+                    
+                    MAX(CASE WHEN dashboard = 'OD_with_L2_query' AND sub_domain = 'GV' THEN doc ELSE 0 END) -
+                    MAX(CASE WHEN dashboard = 'OD_with_L3_query' AND sub_domain = 'GV' THEN doc ELSE 0 END) AS L2_L3_GV,
+                    
+                    MAX(CASE WHEN dashboard = 'OD_with_L2_query' AND sub_domain = 'Logistics' THEN doc ELSE 0 END) -
+                    MAX(CASE WHEN dashboard = 'OD_with_L3_query' AND sub_domain = 'Logistics' THEN doc ELSE 0 END) AS L2_L3_Logistics,
+                    run_date
+                FROM
+                    base_data
+                GROUP BY
+                    month, run_date
+            )
             SELECT
                 month,
-                sub_domain_name as sub_domain,
-                dashboard,
-                distinct_order_count as doc,
-                distinct_order_count_till_last_run_date as doctlrd,
-                run_date, last_run_date
-
-            FROM
-            {DB_SCHEMA_SOURCE}.{DATA_SANITY_TBL} where run_date = (select max(run_date) from {DB_SCHEMA_SOURCE}.{DATA_SANITY_TBL})
-        ),
-        pivot_data AS (
-            SELECT
-                month,
-                MAX(CASE WHEN dashboard = 'NO_with_base_query' AND sub_domain = 'B2C' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'B2C' THEN doc ELSE 0 END) AS NO_OD_B2C,
-                
-                MAX(CASE WHEN dashboard = 'NO_with_base_query' AND sub_domain = 'B2B' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'B2B' THEN doc ELSE 0 END) AS NO_OD_B2B,
-                
-                MAX(CASE WHEN dashboard = 'NO_with_base_query' AND sub_domain = 'GV' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'GV' THEN doc ELSE 0 END) AS NO_OD_GV,
-                
-                MAX(CASE WHEN dashboard = 'NO_with_base_query' AND sub_domain = 'Logistics' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'Logistics' THEN doc ELSE 0 END) AS NO_OD_Logistics,
-                
-                MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'B2C' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_L1_query' AND sub_domain = 'B2C' THEN doc ELSE 0 END) AS OD_L1_B2C,
-                
-                MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'B2B' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_L1_query' AND sub_domain = 'B2B' THEN doc ELSE 0 END) AS OD_L1_B2B,
-                
-                MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'GV' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_L1_query' AND sub_domain = 'GV' THEN doc ELSE 0 END) AS OD_L1_GV,
-                
-                MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'Logistics' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_L1_query' AND sub_domain = 'Logistics' THEN doc ELSE 0 END) AS OD_L1_Logistics,
-                
-                MAX(CASE WHEN dashboard = 'OD_with_L1_query' AND sub_domain = 'B2C' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_L2_query' AND sub_domain = 'B2C' THEN doc ELSE 0 END) AS L1_L2_B2C,
-                
-                MAX(CASE WHEN dashboard = 'OD_with_L1_query' AND sub_domain = 'B2B' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_L2_query' AND sub_domain = 'B2B' THEN doc ELSE 0 END) AS L1_L2_B2B,
-                
-                MAX(CASE WHEN dashboard = 'OD_with_L1_query' AND sub_domain = 'GV' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_L2_query' AND sub_domain = 'GV' THEN doc ELSE 0 END) AS L1_L2_GV,
-                
-                MAX(CASE WHEN dashboard = 'OD_with_L1_query' AND sub_domain = 'Logistics' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_L2_query' AND sub_domain = 'Logistics' THEN doc ELSE 0 END) AS L1_L2_Logistics,
-                
-                MAX(CASE WHEN dashboard = 'OD_with_L2_query' AND sub_domain = 'B2C' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_L3_query' AND sub_domain = 'B2C' THEN doc ELSE 0 END) AS L2_L3_B2C,
-                
-                MAX(CASE WHEN dashboard = 'OD_with_L2_query' AND sub_domain = 'B2B' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_L3_query' AND sub_domain = 'B2B' THEN doc ELSE 0 END) AS L2_L3_B2B,
-                
-                MAX(CASE WHEN dashboard = 'OD_with_L2_query' AND sub_domain = 'GV' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_L3_query' AND sub_domain = 'GV' THEN doc ELSE 0 END) AS L2_L3_GV,
-                
-                MAX(CASE WHEN dashboard = 'OD_with_L2_query' AND sub_domain = 'Logistics' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_L3_query' AND sub_domain = 'Logistics' THEN doc ELSE 0 END) AS L2_L3_Logistics,
+                NO_OD_B2C AS "NO-OD B2C",
+                NO_OD_B2B AS "NO-OD B2B",
+                NO_OD_GV AS "NO-OD GV",
+                NO_OD_Logistics AS "NO-OD Logistics",
+                OD_L1_B2C AS "OD-L1 B2C",
+                OD_L1_B2B AS "OD-L1 B2B",
+                OD_L1_GV AS "OD-L1 GV",
+                OD_L1_Logistics AS "OD-L1 Logistics",
+                L1_L2_B2C AS "L1-L2 B2C",
+                L1_L2_B2B AS "L1-L2 B2B",
+                L1_L2_GV AS "L1-L2 GV",
+                L1_L2_Logistics AS "L1-L2 Logistics",
+                L2_L3_B2C AS "L2-L3 B2C",
+                L2_L3_B2B AS "L2-L3 B2B",
+                L2_L3_GV AS "L2-L3 GV",
+                L2_L3_Logistics AS "L2-L3 Logistics",
                 run_date
             FROM
-                base_data
-            GROUP BY
-                month, run_date
-        )
-        SELECT
-            month,
-            NO_OD_B2C AS "NO-OD B2C",
-            NO_OD_B2B AS "NO-OD B2B",
-            NO_OD_GV AS "NO-OD GV",
-            NO_OD_Logistics AS "NO-OD Logistics",
-            OD_L1_B2C AS "OD-L1 B2C",
-            OD_L1_B2B AS "OD-L1 B2B",
-            OD_L1_GV AS "OD-L1 GV",
-            OD_L1_Logistics AS "OD-L1 Logistics",
-            L1_L2_B2C AS "L1-L2 B2C",
-            L1_L2_B2B AS "L1-L2 B2B",
-            L1_L2_GV AS "L1-L2 GV",
-            L1_L2_Logistics AS "L1-L2 Logistics",
-            L2_L3_B2C AS "L2-L3 B2C",
-            L2_L3_B2B AS "L2-L3 B2B",
-            L2_L3_GV AS "L2-L3 GV",
-            L2_L3_Logistics AS "L2-L3 Logistics",
-            run_date
-        FROM
-            pivot_data
-        ORDER BY
-            month DESC;
+                pivot_data
+            ORDER BY
+                month DESC;
 """
 df = pd.read_sql_query(data_sanity_last_run_date_query,connection_url)
 print(df)
