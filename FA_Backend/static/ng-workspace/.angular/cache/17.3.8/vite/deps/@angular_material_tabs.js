@@ -11,6 +11,16 @@ import {
   MatRipple
 } from "./chunk-TMD5UM2T.js";
 import {
+  CdkPortal,
+  CdkPortalOutlet,
+  TemplatePortal
+} from "./chunk-NTUGGADQ.js";
+import {
+  CdkScrollable,
+  ViewportRuler
+} from "./chunk-VL3DADES.js";
+import "./chunk-RUAHOJLU.js";
+import {
   CdkMonitorFocus,
   FocusKeyManager,
   FocusMonitor
@@ -19,11 +29,6 @@ import "./chunk-VU67VIDV.js";
 import {
   CdkObserveContent
 } from "./chunk-NHPFMYPC.js";
-import {
-  CdkScrollable,
-  ViewportRuler
-} from "./chunk-VL3DADES.js";
-import "./chunk-RUAHOJLU.js";
 import {
   Directionality
 } from "./chunk-EH3DTZSU.js";
@@ -37,11 +42,6 @@ import {
   Platform,
   normalizePassiveListenerOptions
 } from "./chunk-FIYX3P2C.js";
-import {
-  CdkPortal,
-  CdkPortalOutlet,
-  TemplatePortal
-} from "./chunk-NTUGGADQ.js";
 import {
   DOCUMENT
 } from "./chunk-KAW75WPJ.js";

@@ -54,7 +54,7 @@ export class DqReportComponent implements OnInit {
     }
   }
 
-  detailCompletedHighestMissingPIDData: any[] = [];
+  detailCompletedHighestMissingPIDData: any;
 
   detailCompletedTableData: any[] = [];
   detailCompletedTableTitle: string = '';
