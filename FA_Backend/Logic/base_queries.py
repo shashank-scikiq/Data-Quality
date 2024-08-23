@@ -1,7 +1,7 @@
 import pandas as pd
 
 from typing import Tuple, Any
-from sqlalchemy import Select, func, extract, or_, desc
+from sqlalchemy import Select, func, and_, or_, desc, asc
 from datetime import date, datetime
 import os
 import sys
@@ -11,11 +11,10 @@ from sqlalchemy import create_engine
 sys.path.insert(0, "../Models")
 
 from Models.models import engine
-from Models.models import od_dq_base, dq_agg_view, dq_agg_sum, dq_col_sum
-
+from Models.models import (od_dq_base, dq_agg_view, dq_agg_sum, dq_col_sum,
+                           dq_dim_order_status, dq_dim_sellers, ds_data_sanity, dq_agg_order_stats,
+                           ds_last_run_date)
 from Misc import env_vars as ev
-
-engine_ds = create_engine(f"postgresql+psycopg://{ev.PG_USER}:{ev.PG_PWD}@{ev.PG_HOST}:{ev.PG_PORT}/{ev.DS_DB}")
 
 
 def check_envs(env_vars):
@@ -44,32 +43,12 @@ def get_date_range():
     return dt_rng[0], dt_rng[1]
 
 
-def load_cancelled_orders(dt_val: date, total=0):
-    cancelled = (
-        Select(od_dq_base.c.ord_date, od_dq_base.c.seller_np,
-               func.sum(od_dq_base.c.null_cans_code).label("Cancellation_code"),
-               func.sum(od_dq_base.c.null_cans_dt_time).label("Cancelled_Dates"))
-        .where(od_dq_base.c.total_canceled_orders > 0)
-        .where(od_dq_base.c.null_cans_code > 0)
-        .where(od_dq_base.c.ord_date == dt_val)
-        .group_by(od_dq_base.c.ord_date, od_dq_base.c.seller_np)
-    )
-    return run_stmt(cancelled, total)
-
-
-def load_missing_pc(dt_val: str, col_name: str, total=0, delta=False) -> list[str]:
-    # if delta
-    col_ = getattr(od_dq_base.c, col_name)
-    missing_col = (
-        Select(
-            od_dq_base.c.seller_np,
-            col_,
-            od_dq_base.c.total_orders)
-        .where(col_ > 0)
-        .where(od_dq_base.c.ord_date == dt_val)
-        .order_by(col_.desc())
-    )
-    return run_stmt(missing_col, total)
+def get_sellers_by_date(date_val):
+    sellers = Select(dq_dim_sellers).where(dq_dim_sellers.c.order_date == date_val)
+    df = pd.DataFrame(run_stmt(sellers))
+    sellers_list = list(df["seller_np"])
+    del df
+    return sellers_list
 
 
 def curr_date() -> str:
@@ -83,55 +62,24 @@ def get_columns() -> list[str]:
     return od_dq_base.columns.keys()
 
 
-def get_sellers(dt_val: str) -> list[str]:
-    sellers = (
-        Select(
-            od_dq_base.c.seller_np).distinct().where(
-            od_dq_base.c.ord_date == dt_val)
-    )
-    return run_stmt(sellers)
-
-
-def get_per_col(dt_val: str) -> tuple[Any, Any]:
-    all_data = (
-        Select(od_dq_base)
-        .where(od_dq_base.c.ord_date == dt_val)
-    )
-    df = pd.DataFrame(run_stmt(all_data))
-    # print(df)
-    null_cols = [x for x in df.columns if x.__contains__('null') and not x.__contains__('cans')]
-    null_cols.append("total_orders")
-    null_cols_canc = [x for x in df.columns if x.__contains__('null') and x.__contains__('cans')]
-    null_cols_canc.append("total_canceled_orders")
-    df_completed = df[null_cols]
-    df_canc = df[null_cols_canc]
-    return df_completed, df_canc
-
-
-def get_all_df(dt_val: str, total=0) -> pd.DataFrame:
-    # parsed_date = datetime.strptime(dt_val, "%Y-%m-%d")
-    all_curr_mnth = (
-        Select(od_dq_base)
-        .where(extract("month", od_dq_base.c.ord_date) == dt_val.month)
-    )
-    return pd.DataFrame(run_stmt(all_curr_mnth, total))
-
-
-def query_top_cards(curr_dt: datetime.date, prev_dt: datetime.date) -> pd.DataFrame:
+def query_top_cards(curr_dt: datetime, prev_dt: datetime, seller_np: str) -> pd.DataFrame:
     top_cards = (
-        Select(
+        (Select(
             dq_agg_sum.c.ord_date.label("Order_Date"),
             func.sum(dq_agg_sum.c.total_orders).label("Total_Orders"),
             func.sum(dq_agg_sum.c.total_canceled_orders).label("Cancelled_Orders")
-        ).where(or_(dq_agg_sum.c.ord_date == curr_dt, dq_agg_sum.c.ord_date == prev_dt))
-        .group_by(dq_agg_sum.c.ord_date)
-        .order_by(desc(dq_agg_sum.c.ord_date))
+        ).where(and_(
+            (or_(dq_agg_sum.c.ord_date == curr_dt, dq_agg_sum.c.ord_date == prev_dt)),
+            dq_agg_sum.c.seller_np == seller_np if seller_np else True))
+         .group_by(dq_agg_sum.c.ord_date)
+         .order_by(desc(dq_agg_sum.c.ord_date))
+         )
     )
     result = run_stmt(top_cards)
     return pd.DataFrame(result)
 
 
-def query_missing_percentage(curr_dt: datetime.date, prev_dt: datetime.date) -> pd.DataFrame:
+def query_missing_percentage(curr_dt: datetime, prev_dt: datetime, seller_np: str) -> pd.DataFrame:
     col_sum_comp = (
         Select(
             dq_agg_view.c.ord_date,
@@ -154,7 +102,9 @@ def query_missing_percentage(curr_dt: datetime.date, prev_dt: datetime.date) -> 
             func.sum(dq_agg_view.c.null_sell_np).label("null_sell_np"),
             func.sum(dq_agg_view.c.null_net_ord_id).label("null_net_ord_id"),
             func.sum(dq_agg_view.c.null_sell_cty).label("null_sell_cty"),
-        ).where(or_(dq_agg_view.c.ord_date == curr_dt, dq_agg_view.c.ord_date == prev_dt))
+        ).where(and_(
+            or_(dq_agg_view.c.ord_date == curr_dt, dq_agg_view.c.ord_date == prev_dt),
+            dq_agg_view.c.seller_np == seller_np if seller_np else True))
         .group_by(dq_agg_view.c.ord_date)
         .order_by(desc(dq_agg_view.c.ord_date))
     )
@@ -162,14 +112,16 @@ def query_missing_percentage(curr_dt: datetime.date, prev_dt: datetime.date) -> 
     return pd.DataFrame(result)
 
 
-def query_canc_percentage(curr_dt: datetime.date, prev_dt: datetime.date) -> pd.DataFrame:
+def query_canc_percentage(curr_dt: datetime, prev_dt: datetime, seller_np: str) -> pd.DataFrame:
     col_sum_canc = (
         Select(
             dq_agg_view.c.ord_date,
             func.sum(dq_agg_view.c.total_canceled_orders).label("total_canceled_orders"),
             func.sum(dq_agg_view.c.null_cans_code).label("null_cans_code"),
             func.sum(dq_agg_view.c.null_cans_dt_time).label("null_cans_dt_time")
-        ).where(or_(dq_agg_view.c.ord_date == curr_dt, dq_agg_view.c.ord_date == prev_dt))
+        ).where(and_(
+            or_(dq_agg_view.c.ord_date == curr_dt, dq_agg_view.c.ord_date == prev_dt),
+            dq_agg_view.c.seller_np == seller_np if seller_np else True))
         .group_by(dq_agg_view.c.ord_date)
         .order_by(desc(dq_agg_view.c.ord_date))
     )
@@ -177,151 +129,60 @@ def query_canc_percentage(curr_dt: datetime.date, prev_dt: datetime.date) -> pd.
     return pd.DataFrame(result)
 
 
-def query_highest_missing_by_seller(curr_dt: datetime.date, count: int) -> pd.DataFrame:
-    stmt_curr = Select(
+def query_highest_missing_by_seller(curr_dt: datetime, count: int, seller_np: str) -> pd.DataFrame:
+    stmt_curr = (Select(
         dq_agg_sum.c.ord_date,
         dq_agg_sum.c.seller_np,
         func.sum(dq_agg_sum.c.total_orders).label("total_orders"),
-        func.sum(dq_agg_sum.c.sum_missing_cols).label("missing_val")).where(
-        dq_agg_sum.c.ord_date == curr_dt).group_by(
-        dq_agg_sum.c.ord_date).group_by(
-        dq_agg_sum.c.seller_np).order_by(desc(func.sum(dq_agg_sum.c.sum_missing_cols)))
+        func.sum(dq_agg_sum.c.sum_missing_cols).label("missing_val")).
+                 where(and_(dq_agg_sum.c.ord_date == curr_dt,
+                            dq_agg_sum.c.seller_np == seller_np if seller_np else True)).
+                 group_by(dq_agg_sum.c.ord_date).
+                 group_by(dq_agg_sum.c.seller_np).
+                 order_by(desc(func.sum(dq_agg_sum.c.sum_missing_cols))))
     result = run_stmt(stmt_curr, count)
     return pd.DataFrame(result)
 
 
-def query_detailed_completed_table(curr_dt: datetime.date, count: int) -> pd.DataFrame:
-    stmt = Select(
-        dq_agg_sum.c.seller_np,
-        func.sum(dq_agg_sum.c.total_orders).label("total_orders"),
-        func.sum(dq_agg_sum.c.sum_missing_cols).label("sum_missing_cols")
-    ).where(dq_agg_sum.c.ord_date == curr_dt).group_by(
-        dq_agg_sum.c.seller_np).order_by(desc(func.sum(dq_agg_sum.c.sum_missing_cols)))
+def query_detailed_completed_table(curr_dt: datetime, count: int, seller_np: str) -> pd.DataFrame:
+    stmt = Select(dq_col_sum).where(and_(
+        dq_col_sum.c.ord_date == curr_dt,
+        dq_col_sum.c.seller_np == seller_np if seller_np else True)).order_by(
+            desc(dq_col_sum.c.total_orders))
     result = run_stmt(stmt, count)
     return pd.DataFrame(result)
 
 
-def query_detailed_cancelled_table(curr_dt: datetime.date, count: int) -> pd.DataFrame:
-    stmt = Select(
-        dq_agg_sum.c.seller_np,
-        func.sum(dq_agg_sum.c.total_canceled_orders).label("total_orders"),
-        func.sum(dq_agg_sum.c.canc_metrices).label("sum_missing_cols")
-    ).where(dq_agg_sum.c.ord_date == curr_dt).group_by(
-        dq_agg_sum.c.seller_np).order_by(desc(
-        func.sum(dq_agg_sum.c.total_canceled_orders)))
+def query_order_stats(start_date: datetime, count: int, seller_np: str):
+    stmt = Select(dq_agg_order_stats).where(and_(
+        dq_agg_order_stats.c.order_date == start_date,
+        dq_agg_order_stats.c.seller_np == seller_np if seller_np else True)
+    )
     result = run_stmt(stmt, count)
-    return pd.DataFrame(result)
+    if result:
+        return result
+    else:
+        return
 
 
-def query_trend_chart() -> pd.DataFrame:
+def query_trend_chart(start_date: datetime) -> pd.DataFrame:
     stmt = Select(dq_col_sum.c.ord_date,
                   func.sum(dq_col_sum.c.null_del_cty).label("null_del_cty"),
                   func.sum(dq_col_sum.c.null_itm_cat).label("null_itm_cat"),
                   func.sum(dq_col_sum.c.null_cat_cons).label("null_cat_cons"),
                   func.sum(dq_col_sum.c.null_cans_code).label("null_cans_code"),
                   func.sum(dq_col_sum.c.null_cans_dt_time).label("null_cans_dt_time")
-                  ).group_by(dq_col_sum.c.ord_date)
+                  ).group_by(dq_col_sum.c.ord_date).order_by(asc(dq_col_sum.c.ord_date))
+
     result = run_stmt(stmt)
     return pd.DataFrame(result)
 
 
 def query_data_sanity_last_run_date_report() -> pd.DataFrame:
-    data_sanity_last_run_date_query = f"""
-    WITH base_data AS (
-            SELECT
-                month,
-                sub_domain_name as sub_domain,
-                dashboard,
-                distinct_order_count as doc,
-                distinct_order_count_till_last_run_date as doctlrd,
-                run_date, last_run_date
-
-            FROM
-            {ev.DS_PG_SCHEMA}.{ev.DS_TABLE} where run_date = (select max(run_date) from {ev.DS_PG_SCHEMA}.{ev.DS_TABLE})
-            and month >= '{ev.DS_START_DATE}'
-        ),
-        pivot_data AS (
-            SELECT
-                month,
-                MAX(CASE WHEN dashboard = 'NO_with_base_query' AND sub_domain = 'B2C' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'B2C' THEN doc ELSE 0 END) AS NO_OD_B2C,
-                
-                MAX(CASE WHEN dashboard = 'NO_with_base_query' AND sub_domain = 'B2B' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'B2B' THEN doc ELSE 0 END) AS NO_OD_B2B,
-                
-                MAX(CASE WHEN dashboard = 'NO_with_base_query' AND sub_domain = 'GV' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'GV' THEN doc ELSE 0 END) AS NO_OD_GV,
-                
-                MAX(CASE WHEN dashboard = 'NO_with_base_query' AND sub_domain = 'Logistics' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'Logistics' THEN doc ELSE 0 END) AS NO_OD_Logistics,
-                
-                MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'B2C' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_L1_query' AND sub_domain = 'B2C' THEN doc ELSE 0 END) AS OD_L1_B2C,
-                
-                MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'B2B' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_L1_query' AND sub_domain = 'B2B' THEN doc ELSE 0 END) AS OD_L1_B2B,
-                
-                MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'GV' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_L1_query' AND sub_domain = 'GV' THEN doc ELSE 0 END) AS OD_L1_GV,
-                
-                MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'Logistics' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_L1_query' AND sub_domain = 'Logistics' THEN doc ELSE 0 END) AS OD_L1_Logistics,
-                
-                MAX(CASE WHEN dashboard = 'OD_with_L1_query' AND sub_domain = 'B2C' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_L2_query' AND sub_domain = 'B2C' THEN doc ELSE 0 END) AS L1_L2_B2C,
-                
-                MAX(CASE WHEN dashboard = 'OD_with_L1_query' AND sub_domain = 'B2B' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_L2_query' AND sub_domain = 'B2B' THEN doc ELSE 0 END) AS L1_L2_B2B,
-                
-                MAX(CASE WHEN dashboard = 'OD_with_L1_query' AND sub_domain = 'GV' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_L2_query' AND sub_domain = 'GV' THEN doc ELSE 0 END) AS L1_L2_GV,
-                
-                MAX(CASE WHEN dashboard = 'OD_with_L1_query' AND sub_domain = 'Logistics' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_L2_query' AND sub_domain = 'Logistics' THEN doc ELSE 0 END) AS L1_L2_Logistics,
-                
-                MAX(CASE WHEN dashboard = 'OD_with_L2_query' AND sub_domain = 'B2C' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_L3_query' AND sub_domain = 'B2C' THEN doc ELSE 0 END) AS L2_L3_B2C,
-                
-                MAX(CASE WHEN dashboard = 'OD_with_L2_query' AND sub_domain = 'B2B' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_L3_query' AND sub_domain = 'B2B' THEN doc ELSE 0 END) AS L2_L3_B2B,
-                
-                MAX(CASE WHEN dashboard = 'OD_with_L2_query' AND sub_domain = 'GV' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_L3_query' AND sub_domain = 'GV' THEN doc ELSE 0 END) AS L2_L3_GV,
-                
-                MAX(CASE WHEN dashboard = 'OD_with_L2_query' AND sub_domain = 'Logistics' THEN doc ELSE 0 END) -
-                MAX(CASE WHEN dashboard = 'OD_with_L3_query' AND sub_domain = 'Logistics' THEN doc ELSE 0 END) AS L2_L3_Logistics,
-                run_date
-            FROM
-                base_data
-            GROUP BY
-                month, run_date
-        )
-        SELECT
-            month,
-            NO_OD_B2C AS "NO-OD B2C",
-            NO_OD_B2B AS "NO-OD B2B",
-            NO_OD_GV AS "NO-OD GV",
-            NO_OD_Logistics AS "NO-OD Logistics",
-            OD_L1_B2C AS "OD-L1 B2C",
-            OD_L1_B2B AS "OD-L1 B2B",
-            OD_L1_GV AS "OD-L1 GV",
-            OD_L1_Logistics AS "OD-L1 Logistics",
-            L1_L2_B2C AS "L1-L2 B2C",
-            L1_L2_B2B AS "L1-L2 B2B",
-            L1_L2_GV AS "L1-L2 GV",
-            L1_L2_Logistics AS "L1-L2 Logistics",
-            L2_L3_B2C AS "L2-L3 B2C",
-            L2_L3_B2B AS "L2-L3 B2B",
-            L2_L3_GV AS "L2-L3 GV",
-            L2_L3_Logistics AS "L2-L3 Logistics",
-            run_date
-        FROM
-            pivot_data
-        ORDER BY
-            month DESC;
-    """
-    df = pd.read_sql_query(data_sanity_last_run_date_query, engine_ds)
-
+    stmt = Select(ds_last_run_date).where(
+        ds_last_run_date.c.month > datetime.strptime(ev.DS_START_DATE, "%Y-%m-%d"))
+    result = run_stmt(stmt)
+    df = pd.DataFrame(result)
     return df
 
 
@@ -335,17 +196,15 @@ def query_data_variance_report() -> pd.DataFrame:
             distinct_order_count as doc,
             distinct_order_count_till_last_run_date as doctlrd,
             run_date, last_run_date
-
         FROM
-        {ev.DS_PG_SCHEMA}.{ev.DS_TABLE} where month >= '{ev.DS_START_DATE}' order by run_date
+        {ev.PG_SCHEMA}.{ev.DS_TABLE} where month >= '{ev.DS_START_DATE}' order by run_date
     """
-    df = pd.read_sql_query(source_data_query, engine_ds)
+    df = pd.read_sql_query(source_data_query, engine)
 
     date_pairs = df[['run_date', 'last_run_date']].drop_duplicates().values.tolist()
     dataframes = []
 
     for run_date, last_run_date in date_pairs:
-
         if not run_date or not last_run_date:
             continue
 
@@ -359,9 +218,8 @@ def query_data_variance_report() -> pd.DataFrame:
                         distinct_order_count as doc,
                         distinct_order_count_till_last_run_date as doctlrd,
                         run_date, last_run_date
-
                     FROM
-                    {ev.DS_PG_SCHEMA}.{ev.DS_TABLE}  where run_date in ('{run_date}', '{last_run_date}')
+                    {ev.PG_SCHEMA}.{ev.DS_TABLE}  where run_date in ('{run_date}', '{last_run_date}')
                     and month >= '{ev.DS_START_DATE}'
                 ),
                 pivot_data AS (
@@ -370,19 +228,15 @@ def query_data_variance_report() -> pd.DataFrame:
                         (MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'B2C' AND run_date = '{run_date}' THEN doctlrd ELSE 0 END) -
                         MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'B2C' AND run_date = '{last_run_date}' THEN doc ELSE 0 END))
                         AS OD_B2C,
-
                         (MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'B2B' AND run_date = '{run_date}' THEN doctlrd ELSE 0 END) -
                         MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'B2B' AND run_date = '{last_run_date}' THEN doc ELSE 0 END))
                         AS OD_B2B,
-
                         (MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'Voucher' AND run_date = '{run_date}' THEN doctlrd ELSE 0 END) -
                         MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'Voucher' AND run_date = '{last_run_date}' THEN doc ELSE 0 END))
                         AS OD_GV,
-
                         (MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'Logistics' AND run_date = '{run_date}' THEN doctlrd ELSE 0 END) -
                         MAX(CASE WHEN dashboard = 'OD_with_base_query' AND sub_domain = 'Logistics' AND run_date = '{last_run_date}' THEN doc ELSE 0 END))
                         AS OD_Logistics
-
                     FROM
                         base_data
                     GROUP BY
@@ -392,25 +246,17 @@ def query_data_variance_report() -> pd.DataFrame:
                     month,
                     OD_B2C as "OD_B2C",
                     OD_B2B as "OD_B2B",
-                    OD_GV as "OD_B2B",
+                    OD_GV as "OD_GV",
                     OD_Logistics as OD_Logistics,
                     '{run_date} - {last_run_date}' as run_date_diff
-
-                
                 FROM
                     pivot_data
                 ORDER BY
                     month DESC;
-
             """
-
-        df = pd.read_sql(athena_od_varience_query, engine_ds)
-
-        # Append the resulting DataFrame to the list
+        df = pd.read_sql(athena_od_varience_query, engine)
         dataframes.append(df)
-
     combined_df = pd.concat(dataframes, ignore_index=True)
-
     return combined_df
 
 

@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 load_dotenv()
 SCHEMA_SOURCE = os.getenv('SCHEMA_SOURCE')
 DATABASE = os.getenv('DATABASE')
-start_date_data = os.getenv('start_date_data')
+START_DATE = os.getenv('START_DATE')
 
 
 def get_queries(last_run_date):
@@ -25,7 +25,7 @@ def get_queries(last_run_date):
                     NULL as delivery_district
                 FROM {DATABASE}.shared_open_data_gift_voucher_order odv
                 WHERE odv."seller np name" NOT IN ('gl-6912-httpapi.glstaging.in/gl/ondc')
-                and (DATE(odv."o_created_at_date")) >= DATE('{start_date_data}')
+                and (DATE(odv."o_created_at_date")) >= DATE('{START_DATE}')
                 GROUP BY odv."network order id") group by date_format(date_parse(cast("order_date" as varchar) , '%Y-%m-%d'), '%Y-%m') """,
 
         "B2B_OD_query": f"""select 
@@ -45,7 +45,7 @@ def get_queries(last_run_date):
                 NULL as delivery_district
                 FROM {DATABASE}.shared_open_data_b2b_order  odv
                 WHERE odv."seller np name" NOT IN ('gl-6912-httpapi.glstaging.in/gl/ondc')
-                and date(date_parse("O_Created Date & Time",'%Y-%m-%dT%H:%i:%s')) >= DATE('{start_date_data}')
+                and date(date_parse("O_Created Date & Time",'%Y-%m-%dT%H:%i:%s')) >= DATE('{START_DATE}')
                 GROUP BY odv."network order id") group by date_format(date_parse(cast("order_date" as varchar) , '%Y-%m-%d'), '%Y-%m')""",
 
         "B2C_OD_query": f"""
@@ -61,7 +61,7 @@ def get_queries(last_run_date):
                     from
                         (select "network order id", "Item Consolidated Category", "Item Category"
                     from {DATABASE}.nhm_order_fulfillment_subset_v1
-                    where date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')) >= DATE('{start_date_data}')
+                    where date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')) >= DATE('{START_DATE}')
                     and "seller np name" NOT IN ('gl-6912-httpapi.glstaging.in/gl/ondc')
                     group by "network order id","Item Consolidated Category","Item Category"  )
                     group by "network order id", "Item Category"
@@ -69,7 +69,7 @@ def get_queries(last_run_date):
                 distinct_subcategories AS (
                 select "network order id", "Item Category" AS sub_category
                 from {DATABASE}.nhm_order_fulfillment_subset_v1
-                where date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')) >= DATE('{start_date_data}')
+                where date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')) >= DATE('{START_DATE}')
                 and "seller np name" NOT IN ('gl-6912-httpapi.glstaging.in/gl/ondc')
                 group by "network order id", "Item Category"
                 )
@@ -94,7 +94,7 @@ def get_queries(last_run_date):
                 LEFT JOIN order_subcategories oc ON odv."network order id" = oc."network order id" AND odv."Item Category" = oc.sub_category
                 LEFT JOIN distinct_subcategories dc ON odv."network order id" = dc."network order id" AND odv."Item Category" = dc.sub_category
                 WHERE odv."seller np name" NOT IN ('gl-6912-httpapi.glstaging.in/gl/ondc')
-                and date(date_parse("O_Created Date & Time",'%Y-%m-%dT%H:%i:%s')) >= DATE('{start_date_data}')
+                and date(date_parse("O_Created Date & Time",'%Y-%m-%dT%H:%i:%s')) >= DATE('{START_DATE}')
                 GROUP BY odv."network order id", odv."Item Category") group by date_format(date_parse(cast("order_date" as varchar) , '%Y-%m-%d'), '%Y-%m')""",
 
         "logistics_OD_query": f"""select 
@@ -154,7 +154,7 @@ def get_queries(last_run_date):
                     and not(lower(bap_id) like '%demoproject%')
                     and not(lower(bpp_id) like '%preprod')
                     and DATE(order_created_at) is not null
-                    and DATE(a.order_created_at) >= date('{start_date_data}')
+                    and DATE(a.order_created_at) >= date('{START_DATE}')
                     and a.bap_id is not null
                     AND (a.on_confirm_error_code IS NULL OR a.on_confirm_error_code NOT IN ('65001', '66001'))
                     AND (a.on_confirm_sync_response <> 'NACK' OR a.on_confirm_sync_response IS NULL)
@@ -206,7 +206,7 @@ def get_queries(last_run_date):
                         null as seller_state_code
                     FROM {DATABASE}.shared_open_data_logistics_order a
                     WHERE date(a.order_created_at) >= DATE('2024-05-01')
-                    and date(a.order_created_at) >= date('{start_date_data}')
+                    and date(a.order_created_at) >= date('{START_DATE}')
                         AND date_parse(a.f_agent_assigned_at_date, '%Y-%m-%dT%H:%i:%s') IS NULL
                         AND UPPER(a.latest_order_status) = 'CANCELLED'
                         AND (CASE
@@ -399,7 +399,7 @@ def get_queries(last_run_date):
                     {DATABASE}.shared_order_fulfillment_nhm_fields_view_hudi
                 where
                     date(date_parse("O_Created Date & Time",
-                        '%Y-%m-%dT%H:%i:%s')) >= date('{start_date_data}')
+                        '%Y-%m-%dT%H:%i:%s')) >= date('{START_DATE}')
                     and "network order id" is not null
                     and "network order id" <> ''
                     and not (
@@ -885,7 +885,7 @@ def get_queries(last_run_date):
                 from
                     {DATABASE}.shared_order_fulfillment_nhm_fields_view_hudi  ---     Retail table
                 where
-                    date(date_parse("O_Created Date & Time",'%Y-%m-%dT%H:%i:%s')) >= date('{start_date_data}')
+                    date(date_parse("O_Created Date & Time",'%Y-%m-%dT%H:%i:%s')) >= date('{START_DATE}')
                     and "network order id" is not null
                     and "network order id" <> ''
                     and not (
@@ -1388,7 +1388,7 @@ def get_queries(last_run_date):
                     NULL as delivery_district
                 FROM {DATABASE}.shared_open_data_gift_voucher_order odv
                 WHERE odv."seller np name" NOT IN ('gl-6912-httpapi.glstaging.in/gl/ondc')
-                and (DATE(odv."o_created_at_date")) >= DATE('{start_date_data}')
+                and (DATE(odv."o_created_at_date")) >= DATE('{START_DATE}')
                 GROUP BY odv."network order id") where cast("order_date" as varchar) < '{last_run_date}'
                 group by date_format(date_parse(cast("order_date" as varchar) , '%Y-%m-%d'), '%Y-%m') """,
 
@@ -1408,7 +1408,7 @@ def get_queries(last_run_date):
                 NULL as delivery_district
                 FROM {DATABASE}.shared_open_data_b2b_order  odv
                 WHERE odv."seller np name" NOT IN ('gl-6912-httpapi.glstaging.in/gl/ondc')
-                and date(date_parse("O_Created Date & Time",'%Y-%m-%dT%H:%i:%s')) >= DATE('{start_date_data}')
+                and date(date_parse("O_Created Date & Time",'%Y-%m-%dT%H:%i:%s')) >= DATE('{START_DATE}')
                 GROUP BY odv."network order id") where cast("order_date" as varchar) < '{last_run_date}'
                 group by date_format(date_parse(cast("order_date" as varchar) , '%Y-%m-%d'), '%Y-%m')""",
 
@@ -1424,7 +1424,7 @@ def get_queries(last_run_date):
                     from
                         (select "network order id", "Item Consolidated Category", "Item Category"
                     from {DATABASE}.nhm_order_fulfillment_subset_v1
-                    where date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')) >= DATE('{start_date_data}')
+                    where date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')) >= DATE('{START_DATE}')
                     and "seller np name" NOT IN ('gl-6912-httpapi.glstaging.in/gl/ondc')
                     group by "network order id","Item Consolidated Category","Item Category"  )
                     group by "network order id", "Item Category"
@@ -1432,7 +1432,7 @@ def get_queries(last_run_date):
                 distinct_subcategories AS (
                 select "network order id", "Item Category" AS sub_category
                 from {DATABASE}.nhm_order_fulfillment_subset_v1
-                where date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')) >= DATE('{start_date_data}')
+                where date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')) >= DATE('{START_DATE}')
                 and "seller np name" NOT IN ('gl-6912-httpapi.glstaging.in/gl/ondc')
                 group by "network order id", "Item Category"
                 )
@@ -1457,7 +1457,7 @@ def get_queries(last_run_date):
                 LEFT JOIN order_subcategories oc ON odv."network order id" = oc."network order id" AND odv."Item Category" = oc.sub_category
                 LEFT JOIN distinct_subcategories dc ON odv."network order id" = dc."network order id" AND odv."Item Category" = dc.sub_category
                 WHERE odv."seller np name" NOT IN ('gl-6912-httpapi.glstaging.in/gl/ondc')
-                and date(date_parse("O_Created Date & Time",'%Y-%m-%dT%H:%i:%s')) >= DATE('{start_date_data}')
+                and date(date_parse("O_Created Date & Time",'%Y-%m-%dT%H:%i:%s')) >= DATE('{START_DATE}')
                 GROUP BY odv."network order id", odv."Item Category") where cast("order_date" as varchar) < '{last_run_date}'
                 group by date_format(date_parse(cast("order_date" as varchar) , '%Y-%m-%d'), '%Y-%m')""",
 
@@ -1517,7 +1517,7 @@ def get_queries(last_run_date):
                     and not(lower(bap_id) like '%demoproject%')
                     and not(lower(bpp_id) like '%preprod')
                     and DATE(order_created_at) is not null
-                    and DATE(a.order_created_at) >= date('{start_date_data}')
+                    and DATE(a.order_created_at) >= date('{START_DATE}')
                     and a.bap_id is not null
                     AND (a.on_confirm_error_code IS NULL OR a.on_confirm_error_code NOT IN ('65001', '66001'))
                     AND (a.on_confirm_sync_response <> 'NACK' OR a.on_confirm_sync_response IS NULL)
@@ -1569,7 +1569,7 @@ def get_queries(last_run_date):
                         null as seller_state_code
                     FROM {DATABASE}.shared_open_data_logistics_order a
                     WHERE date(a.order_created_at) >= DATE('2024-05-01')
-                    and date(a.order_created_at) >= date('{start_date_data}')
+                    and date(a.order_created_at) >= date('{START_DATE}')
                         AND date_parse(a.f_agent_assigned_at_date, '%Y-%m-%dT%H:%i:%s') IS NULL
                         AND UPPER(a.latest_order_status) = 'CANCELLED'
                         AND (CASE
@@ -1763,7 +1763,7 @@ def get_queries(last_run_date):
                     {DATABASE}.shared_order_fulfillment_nhm_fields_view_hudi
                 where
                     date(date_parse("O_Created Date & Time",
-                        '%Y-%m-%dT%H:%i:%s')) >= date('{start_date_data}')
+                        '%Y-%m-%dT%H:%i:%s')) >= date('{START_DATE}')
                     and "network order id" is not null
                     and "network order id" <> ''
                     and not (
@@ -2252,7 +2252,7 @@ def get_queries(last_run_date):
                 from
                     {DATABASE}.shared_order_fulfillment_nhm_fields_view_hudi  ---     Retail table
                 where
-                    date(date_parse("O_Created Date & Time",'%Y-%m-%dT%H:%i:%s')) >= date('{start_date_data}')
+                    date(date_parse("O_Created Date & Time",'%Y-%m-%dT%H:%i:%s')) >= date('{START_DATE}')
                     and "network order id" is not null
                     and "network order id" <> ''
                     and not (
