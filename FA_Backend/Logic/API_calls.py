@@ -180,40 +180,6 @@ def order_stats(count: int = 100,
     return data
     
 
-# def order_stats(count: int = 15,
-#                 start_date: datetime = max_date,
-#                 seller_np: str | None = None):
-#     result = bq.query_order_stats(start_date=start_date, count=count,
-#                                   seller_np=seller_np)
-#     if result:
-#         df = pd.DataFrame(result)
-#         df["cancellation_code_missing"] = df["cancellation_code_missing"].fillna(0).astype(int)
-#         df["Total_orders"] = df["in_progress"] + df["completed"] + df["cancelled"]
-#         df.sort_values(by=["Total_orders", "cancelled", "cancellation_code_missing"], ascending=False)
-#         json_frame = []
-#         for x in df.index:
-#             json_str = {
-#                 "Seller NP": df.loc[x]["seller_np"],
-#                 "Total Orders": int(df.loc[x]["Total_orders"]),
-#                 "In Progress": int(df.loc[x]["in_progress"]),
-#                 "Completed": int(df.loc[x]["in_progress"]),
-#                 "Total Cancellations": int(df.loc[x]["cancelled"]),
-#                 "Cancellation Code missing": int(df.loc[x]["cancellation_code_missing"])
-#             }
-#             json_frame.append(json_str)
-#     else:
-#         json_frame = [{
-#             "Seller NP": "NA",
-#             "Total Orders": 0,
-#             "In Progress": 0,
-#             "Completed": 0,
-#             "Total Cancellations": 0,
-#             "Cancellation Code missing": 0}
-#         ]
-
-#     return json_frame
-
-
 def trend_chart(start_date: datetime | None = None):
     df = bq.query_trend_chart(start_date)
     final_json = {
