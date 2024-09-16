@@ -17,6 +17,7 @@ app = FastAPI()
 
 origins = [
     "http://localhost:4200",  # Angular dev server
+    "http://localhost:4300",
     "http://localhost:8000",  # Angular dev server
     # Add any other origins here
 ]
@@ -120,4 +121,4 @@ async def get_last_run_date_report():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8000, reload=True)

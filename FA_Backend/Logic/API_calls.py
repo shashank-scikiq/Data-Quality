@@ -76,38 +76,38 @@ def top_cards_delta(start_date: datetime = max_date, seller_np: str = None):
     df_temp["Cancel_percentage"] = df_temp["Cancelled_Orders"] / df_temp["Total_Orders"]
     df_temp["Completed_percentage"] = (df_temp["Total_Orders"] - df_temp["Cancelled_Orders"]) / df_temp["Total_Orders"]
     tt, td, tp = calc_metrics(df_temp, "Total_Orders")
-    tc, cd, cp = calc_metrics(df_temp, "Cancelled_Orders")
+    # tc, cd, cp = calc_metrics(df_temp, "Cancelled_Orders")
     cct, ccd, ccp = calc_metrics(df_temp, "Cancel_percentage")
     cot, cod, cop = calc_metrics(df_temp, "Completed_percentage")
     total_orders = {
         "title": "Total Orders",
-        "count": str(tt),
+        "count": f"{tt:,}",
         "increased": False if td < 0 else True,
-        "variancePercentage": str(np.round(tp,2)),
+        "variancePercentage": f"{str(np.round(tp,2))}%",
         "varianceText": "vs Yesterday"
     }
-    total_cancellation = {
-        "title": "Cancelled Orders",
-        "count": str(tc),
-        "increased": False if cd < 0 else True,
-        "variancePercentage": str(np.round(cp,2)),
-        "varianceText": "vs Yesterday"
-    }
+    # total_cancellation = {
+    #     "title": "Cancelled Orders",
+    #     "count": str(tc),
+    #     "increased": False if cd < 0 else True,
+    #     "variancePercentage": f"{str(np.round(cp,2)),
+    #     "varianceText": "vs Yesterday"
+    # }
     cancel_percentage = {
         "title": "Order Cancellation %",
-        "count": str(cct),
+        "count": f"{str(cct*100)}%",
         "increased": False if ccd < 0 else True,
-        "variancePercentage": str(np.round(ccp,2)),
+        "variancePercentage": f"{str(np.round(ccp,2))}%",
         "varianceText": "vs Yesterday"
     }
     compl_percentage = {
         "title": "Order Completion %",
-        "count": str(cot),
+        "count": f"{str(cot*100)}%",
         "increased": False if cod < 0 else True,
-        "variancePercentage": str(np.round(cop,2)               ),
+        "variancePercentage": f"{str(np.round(cop,2))}%",
         "varianceText": "vs Yesterday"
     }
-    final_list = [total_orders, total_cancellation, cancel_percentage, compl_percentage]
+    final_list = [total_orders, cancel_percentage, compl_percentage]
     return final_list
 
 

@@ -132,6 +132,15 @@
         border-radius: 0.25rem;
         padding: 8px 12px;
         min-width: 100px;
+
+        &.selected {
+            box-shadow: 0 2px 6px rgba(0, 0, 0, .16), 0 1px 2px rgba(0, 0, 0, .23);
+            background-color: #378df030;
+        }
+
+        &:hover {
+            box-shadow: 0 2px 6px rgba(0, 0, 0, .16), 0 1px 2px rgba(0, 0, 0, .23);
+        }
     }
 }
 

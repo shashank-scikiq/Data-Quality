@@ -9,7 +9,7 @@
     <mat-tab-group>
         <mat-tab label="Data Quality">
             <div class="heading-section margin-y-3">
-                <p class="margin-0 font-md font-bolder">Data quality report</p>
+                <p class="margin-0 font-md font-bolder"></p>
                 @if(selectedDate) {
                     <div class="filter-section">
                         <div class="seller-np-selector">
@@ -50,10 +50,11 @@
             </div>
             <div class="margin-y-3">
                 @if(radialCharts) {
-                <p>% Missing Data</p>
+                <p>Missing %</p>
                 <div class="radial-charts-section">
                     @for(chart of radialCharts; track chart) {
-                    <div class="card-container">
+                    <div [ngClass]="{'card-container cursor-pointer': true, 'selected': selectedMissingDataOption == chart?.title}" 
+                        (click)="selectMissingData(chart?.title)">
                         <p class="margin-0">{{chart?.title}}</p>
                         <apx-chart [series]="chart?.series" [plotOptions]="radialChartOption.plotOptions"
                             [fill]="radialChartOption.fill" [chart]="radialChartOption.chart">
@@ -62,6 +63,29 @@
                     }
                 </div>
                 }
+                <div class="trend-section margin-y-3">
+                    <p class="text-bold">{{trend1Title}}</p>
+                    <div class="trend-container">
+                        @if(trend1?.series?.length && trend1?.categories?.length) {
+                        <div >
+                            <p>{{trend1?.title}}</p>
+    
+                            <apx-chart [series]="filteredTrend1 ? filteredTrend1 : trend1.series" [chart]="chartOptions" [dataLabels]="{
+                                        enabled: false
+                                      }" [xaxis]="{
+                                        categories: trend1.categories,
+                                        labels: {
+                                            show: false,
+                                            offsetX: 10
+                                        }
+                                    }" [legend]="chartOptions.legend" [noData]="{
+                                        text: 'No Data to Display'
+                                      }">
+                            </apx-chart>
+                        </div>
+                        }
+                    </div>
+                </div>
             </div>
 
             <div class="detail-completed-section margin-y-3">
@@ -99,8 +123,14 @@
                         [nzData]="detailCompletedTableData" [nzScroll]="{ x: '100vw', y: '240px' }">
                         <thead>
                             <tr>
-                                <th nzWidth="240px" *ngFor="let header of (detailCompletedTableData.length ? object.keys(detailCompletedTableData[0]) : [])"
-                                    style="background-color: white; color: #8392a5; font-weight: 500;">{{header}}</th>
+                                @for(header of (detailCompletedTableData.length ? object.keys(detailCompletedTableData[0]) : []);
+                                    track header; let i = $index) {
+                                        <th 
+                                            nzWidth="240px" 
+                                            [nzSortFn]="true" 
+                                            (nzSortOrderChange)="sort('missingData', header, $event, i)"
+                                            style="background-color: white; color: #8392a5; font-weight: 500;">{{header}}</th>
+                                }
                             </tr>
                         </thead>
                         <tbody>
@@ -118,29 +148,7 @@
 
             </div>
 
-            <div class="trend-section margin-y-3">
-                <p class="text-bold">{{trend1Title}}</p>
-                <div class="trend-container">
-                    @if(trend1?.series?.length && trend1?.categories?.length) {
-                    <div >
-                        <p>{{trend1?.title}}</p>
-
-                        <apx-chart [series]="trend1.series" [chart]="chartOptions" [dataLabels]="{
-                                    enabled: false
-                                  }" [xaxis]="{
-                                    categories: trend1.categories,
-                                    labels: {
-                                        show: false,
-                                        offsetX: 10
-                                    }
-                                }" [legend]="chartOptions.legend" [noData]="{
-                                    text: 'No Data to Display'
-                                  }">
-                        </apx-chart>
-                    </div>
-                    }
-                </div>
-            </div>
+            
 
             <div class="detail-completed-section margin-y-3">
                 <p class="margin-0">Detail Cancelled</p>
@@ -159,8 +167,12 @@
                         [nzData]="detailCancelledTableData" [nzScroll]="{ x: '100vw', y: '240px' }">
                         <thead>
                             <tr>
-                                <th *ngFor="let header of (detailCancelledTableData.length ? object.keys(detailCancelledTableData[0]) : [])"
-                                    style="background-color: white; color: #8392a5; font-weight: 500;">{{header}}</th>
+                                @for(header of (detailCancelledTableData.length ? object.keys(detailCancelledTableData[0]) : []);
+                                    track header; let i = $index) {
+                                    <th [nzSortFn]="true" 
+                                        (nzSortOrderChange)="sort('canceledData', header, $event, i)"
+                                        style="background-color: white; color: #8392a5; font-weight: 500;">{{header}}</th>
+                                    }
                             </tr>
                         </thead>
                         <tbody>
