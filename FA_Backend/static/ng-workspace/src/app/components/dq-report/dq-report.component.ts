@@ -13,6 +13,8 @@ export class DqReportComponent implements OnInit {
 
   radialCharts: any[] = [];
 
+  selectedMissingDataOption: string = '';
+
   radialChartOption: any = {
     chart: {
       width: 130,
@@ -63,6 +65,7 @@ export class DqReportComponent implements OnInit {
   detailCancelledTableTitle: string = '';
 
   trend1: any = null;
+  filteredTrend1: any = null;
   trend1Title: string = '';
   trend2: any = null;
 
@@ -115,6 +118,8 @@ export class DqReportComponent implements OnInit {
       if (value) {
         this.selectedDate = value;
         this.appService.setSelectedSellerNP('All');
+        this.selectedMissingDataOption = '';
+        this.filteredTrend1 = null;
         this.initBoard();
         this.getSellerNPs();
   
@@ -164,6 +169,8 @@ export class DqReportComponent implements OnInit {
   updateSelectedNp(value: any) {
     this.selectedSellerNp = value;
     this.appService.setSelectedSellerNP(value);
+    this.selectedMissingDataOption = '';
+    this.filteredTrend1 = null;
     this.initBoard();
   }
 
@@ -228,5 +235,45 @@ export class DqReportComponent implements OnInit {
 
   setSelectedDate(value: any) {
     this.appService.setselectedDate(value);
+  }
+
+  selectMissingData(option: any) {
+    if (!this.trend1?.series?.length) {
+      return;
+    }
+
+    if (this.selectedMissingDataOption === option) {
+      this.selectedMissingDataOption = '';
+      this.filteredTrend1 = null;
+    } else {
+      this.selectedMissingDataOption = option;
+      this.filteredTrend1 = this.trend1.series.filter((data: any) => data.name == option);
+    }
+  }
+
+  sortByValue(data: any, value: any, order: any) {
+    return data.sort((a: string[], b: string[]) => {
+      let comparison = 0;
+      if (a[value] > b[value]) {
+        comparison = 1;
+      } else if (a[value] < b[value]) {
+        comparison = -1;
+      }
+      return order === 'ascend' ? comparison : -comparison;
+    });
+  }
+
+  sort(tableName: string, sortName: string, sortValue: any, index: number): void {
+    if (sortName == null) {
+      return;
+    }
+
+    if (tableName == 'missingData') {
+      this.detailCompletedTableData = this.sortByValue(this.detailCompletedTableData, sortName, sortValue);
+    } 
+
+    if (tableName == 'canceledData') {
+      this.detailCancelledTableData = this.sortByValue(this.detailCancelledTableData, sortName, sortValue);
+    }
   }
 }
