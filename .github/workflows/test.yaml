@@ -1,0 +1,22 @@
+name: CI-CD for Data Quality
+on:
+  push:
+    branches: [deployment, fa_backend]
+  workflow_dispatch:
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu_latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Connect to EC2 instance
+        uses: actions/ssh-key-action@v1
+        with:
+          host: ${{ secrets.EC2_PUBLIC_IP }}
+          key: ${{ secrets.EC2_PVT_KEY }}
+          command: |
+            sudo su - shashank_daaslabs
+            cd /home/shashank_daaslabs/Downloads
+            touch test.txt
