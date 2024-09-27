@@ -34,11 +34,13 @@ jobs:
       - name: Execute Custom command
         env:
           SSH_PVT_KEY: ${{ secrets.EC2_PVT_KEY }}
+          EC2_IP: ${{ secrets.EC2_PUBLIC_IP }}
+          ec2_user: ${{ secrets.SSH_USER }}
         run: |
           echo "$EC2_PVT_KEY" > key.pem
           chmod 600 key.pem
 
-          ssh -o StrictHostKeyChecking=no -i key.pem ec2-user@YOUR_EC2_IP << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i key.pem -n $ec2_user@$EC2_IP << 'EOF'
           cd /home/shashank_daaslabs/OD_DB_Files
           touch test_file.txt
           EOF
