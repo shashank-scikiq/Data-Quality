@@ -39,9 +39,7 @@ jobs:
         run: |
           echo "$EC2_PVT_KEY" > key.pem
           chmod 400 key.pem
-          
-          ls
-          pwd
+        
           ssh -o StrictHostKeyChecking=no -i key.pem -n $EC2_USER@$EC2_IP << 'EOF'
           cd /home/shashank_daaslabs/OD_DB_Files
           touch test_file.txt
