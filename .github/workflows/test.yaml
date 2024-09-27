@@ -16,8 +16,8 @@ jobs:
     
       - name: Install OpenVpn
         run: |
-          sudo dnf -y update
-          sudo dnf install -y openvpn
+          sudo apt-get update -y
+          sudo apt-get install -y openvpn
 
       - name: Set up OpenVpn
         env:
