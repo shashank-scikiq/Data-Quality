@@ -7,16 +7,39 @@ on:
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+    
+      - name: Install OpenVpn
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openvpn
 
-      - name: ssh-agent-deploy-key
-        uses: Sithi5/remote-ssh-commands-action@main
-        with:
-            SSH_USER: ${{ secrets.SSH_USER }}
-            SSH_PRIVATE_KEY: ${{ secrets.EC2_PVT_KEY }}
-            SSH_HOST: ${{ secrets.EC2_PUBLIC_IP }}
-            SSH_PORT: 22
-            SSH_REMOTE_COMMANDS: cd /home/shashank_daaslabs/Downloads;touch test.txt
-            
+      - name: Set up OpenVpn
+        env:
+          OVPN_FILE: ${{ secrets.OVPN_FILE }}
+        run: |
+          echo "$OVPN_FILE" > openvpn-config.ovpn
+          sudo chmod 400 openvpn-config.ovpn
+          sudo openvpn --config openvpn-config.ovpn --daemon
+        
+      - name: Wait for VPN Connection
+        run: |
+          sleep 10
+        
+      - name: Execute Custom command
+        env:
+          SSH_PVT_KEY: ${{ secrets.EC2_PVT_KEY }}
+        run: |
+          echo "$EC2_PVT_KEY" > key.pem
+          chmod 600 key.pem
+
+          ssh -o StrictHostKeyChecking=no -i key.pem ec2-user@YOUR_EC2_IP << 'EOF'
+          cd /home/shashank_daaslabs/OD_DB_Files
+          touch test_file.txt
+          EOF
+
