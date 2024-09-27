@@ -26,6 +26,7 @@ jobs:
           echo "$OVPN_FILE" > openvpn-config.ovpn
           sudo chmod 600 openvpn-config.ovpn
           sudo openvpn --config openvpn-config.ovpn --daemon
+          sleep 10
           ps -ef | grep -i openvpn
         
       - name: Execute Custom commands
