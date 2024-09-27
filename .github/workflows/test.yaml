@@ -6,7 +6,7 @@ on:
 
 jobs:
   build_and_deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
 
@@ -16,22 +16,21 @@ jobs:
     
       - name: Install OpenVpn
         run: |
-          sudo apt-get update
-          sudo apt-get install -y openvpn
+          sudo dnf -y update
+          sudo dnf install -y openvpn
 
       - name: Set up OpenVpn
         env:
           OVPN_FILE: ${{ secrets.OVPN_FILE }}
         run: |
           echo "$OVPN_FILE" > openvpn-config.ovpn
-          sudo chmod 400 openvpn-config.ovpn
-          sudo openvpn --config openvpn-config.ovpn --daemon
-        
-      - name: Wait for VPN Connection
-        run: |
+          sudo chmod 600 openvpn-config.ovpn
+          sudo openvpn --config openvpn-config.ovpn
+          echo "Status is $?"
           sleep 10
+          ps -ef | grep -i openvpn
         
-      - name: Execute Custom command
+      - name: Execute Custom commands
         env:
           SSH_PVT_KEY: ${{ secrets.EC2_PVT_KEY }}
           EC2_IP: ${{ secrets.EC2_PUBLIC_IP }}
@@ -39,8 +38,8 @@ jobs:
         run: |
           echo "$EC2_PVT_KEY" > key.pem
           chmod 400 key.pem
-        
-          ssh -o StrictHostKeyChecking=no -i key.pem -n $EC2_USER@$EC2_IP << 'EOF'
+          
+          ssh -i key.pem $EC2_USER@$EC2_IP << 'EOF'
           cd /home/shashank_daaslabs/OD_DB_Files
           touch test_file.txt
           EOF
