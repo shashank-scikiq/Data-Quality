@@ -1,12 +1,10 @@
-import sys
 from sqlalchemy import create_engine, MetaData, Table, Column, Date, String, BIGINT, INT
-from dotenv import load_dotenv
 from FA_Backend.DQ_ETL import utils as ev
 
 print("The port is ", ev.PG_PORT)
 engine = create_engine(f"postgresql+psycopg://{ev.PG_USER}:{ev.PG_PASSWD}@{ev.PG_HOST}:{ev.PG_PORT}/{ev.PG_DB}")
 meta = MetaData()
-meta.reflect(bind=engine, schema=f"{ev.PG_SCHEMA}")
+meta.reflect(bind=engine, schema=ev.PG_SCHEMA)
 
 od_dq_base = Table(
     ev.DQ_TBL,
