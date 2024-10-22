@@ -4,7 +4,7 @@ import re
 import sys
 
 try:
-	env_file="D:\\Work\\git\\Data-Quality\\FA_Backend\\.env"
+	env_file=".env"
 	load_dotenv(env_file)
 except Exception as e:
 	raise e
