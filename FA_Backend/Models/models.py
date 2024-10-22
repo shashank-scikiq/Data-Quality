@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine, MetaData, Table, Column, Date, String, BIGINT, INT
-from FA_Backend.DQ_ETL import utils as ev
+from DQ_ETL import utils as ev
 
 print("The port is ", ev.PG_PORT)
 engine = create_engine(f"postgresql+psycopg://{ev.PG_USER}:{ev.PG_PASSWD}@{ev.PG_HOST}:{ev.PG_PORT}/{ev.PG_DB}")
@@ -143,7 +143,7 @@ dq_agg_order_stats = Table(
 )
 
 ds_data_sanity = Table(
-    ev.DS_TABLE,
+    ev.DATA_SANITY_TBL,
     meta,
     Column("month", Date, nullable=False),
     Column("sub_domain_name", String(50), nullable=False),

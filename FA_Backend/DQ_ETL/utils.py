@@ -38,6 +38,7 @@ DIM_SELLERS = os.getenv("DIM_SELLERS")
 AGG_ORD_STATS = os.getenv("AGG_ORD_STATS")
 DS_TABLE = os.getenv("DS_TABLE")
 DS_LAST_RUN_DATE = os.getenv("DS_LAST_RUN_DATE")
+DATA_SANITY_TBL = os.getenv("DATA_SANITY_TBL")
 
 # Misc Variables
 # ==================================================
