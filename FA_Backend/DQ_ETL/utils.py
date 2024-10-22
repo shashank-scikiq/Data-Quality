@@ -49,7 +49,7 @@ tbl_names = {
 	"AGG_VIEW" : os.getenv("AGG_VIEW"),
 	"AGG_SUM" : os.getenv("AGG_SUM"),
 	"COL_SUM" : os.getenv("COL_SUM"),
-	"DIM_ORD_STAT" : os.getenv("DIM_ORD_STATUS"),
+	"DIM_ORD_STAT" : os.getenv("DIM_ORD_STAT"),
 	"DIM_SELLERS" : os.getenv("DIM_SELLERS"),
 	"AGG_ORD_STATS" : os.getenv("AGG_ORD_STATS"),
 	"DS_TABLE" : os.getenv("DATA_SANITY_TBL"),
