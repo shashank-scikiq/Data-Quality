@@ -58,6 +58,8 @@ tbl_names = {
 	"ATH_SCHEMA": os.getenv("ATH_SCHEMA"),
 }
 
+SQL_FILES = os.getenv("SCRIPT_LOC")
+START_DATE = os.getenv("START_DATE")
 
 # Connection information
 conn_info = {

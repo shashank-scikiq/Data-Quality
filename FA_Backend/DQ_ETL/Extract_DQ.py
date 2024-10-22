@@ -11,7 +11,7 @@ from EXT_ATH import process_date
 from dotenv import load_dotenv
 import Dir_chk as dc
 from FA_Backend.Models.models import engine, meta
-from utils import tbl_names
+from utils import tbl_names, SQL_FILES, START_DATE, BASE_TABLE
 
 import pyarrow.parquet as pq
 import psycopg
@@ -66,7 +66,7 @@ def list_dates(start_date):
     date_list = []
 
     while start_date.date() <= end_date:
-        date_list.append(start_date.date())
+        date_list.append(start_date.date().strftime(format="%Y-%m-%d"))
         start_date += timedelta(days=1)
     return date_list
 
@@ -88,13 +88,8 @@ def dump_parquet_to_postgresql(parquet_file_path, table_name, conn_info):
         print("Done.")
 
 
-def exec_sql(conn: str, query: str, tbl_name: list = None):
-    try:
-        engine = create_engine(conn)
-    except Exception as e:
-        raise e
-
-    with engine.connect() as db_conn:
+def exec_sql(db_engine , query: str, tbl_name: list = None, ):
+    with db_engine.connect() as db_conn:
         if tbl_name:
             for table in tbl_name:
                 print(f"Now Truncating --> {table}")
@@ -113,7 +108,7 @@ def exec_sql(conn: str, query: str, tbl_name: list = None):
                 raise e
 
 
-def dqEtlMain():
+async def dqEtlMain():
     print("Checking the Target Folder.")
     final_dir = dc.check_create_folders(os.getenv("DQ_DUMP_LOC"))
     print(final_dir)
@@ -129,26 +124,40 @@ def dqEtlMain():
 
     print("Verifying the schema.")
     create_sch = f"""CREATE SCHEMA IF NOT EXISTS "{utils.PG_SCHEMA}" AUTHORIZATION "{utils.PG_USER}"""
-    exec_sql(conn=pg_url, query=create_sch)
+    exec_sql(db_engine=engine, query=create_sch)
+
+    print("Truncating the tables.")
+    create_sch = f"""CREATE SCHEMA IF NOT EXISTS "{utils.PG_SCHEMA}" AUTHORIZATION "{utils.PG_USER}"""
+    exec_sql(db_engine=engine, query=create_sch)
 
     print("Creating the Tables.")
     with engine.begin() as conn_obj:
         conn_obj.run_sync(meta.create_all)
 
     print("Extract the data from DB.")
+    final_sql = None
+    sql_exec_seq = ["base_od_dq_nhm.sql","base_dim_sellers.sql", "base_dim_order_status.sql",
+                    "mat_view_aggregated_view.sql", "mat_view_aggregated_sum.sql",
+                    "view_agg_order_status.sql", "view_col_sum.sql"]
 
-    final_sql = "".join(read_file("D:\\Work\\git\\Data-Quality\\FA_Backend\\Sql\\base_dim_order_status.sql"))
-
-    for key, value in utils.tbl_names.items():
-        try:
-            final_sql = re.sub(rf'\b{re.escape(key)}\b', value, final_sql)
-        except Exception as e:
-            print("Error while replacing the values.")
-            print(key, value)
-            raise e
-
-    print(final_sql.format(date_val=12))
-
+    dates_between = list_dates(START_DATE)
+    for sql_file in sql_exec_seq:
+        final_sql = "".join(read_file(SQL_FILES+sql_file))
+        if final_sql:
+            for key, value in utils.tbl_names.items():
+                try:
+                    final_sql = re.sub(rf'\b{re.escape(key)}\b', value, final_sql)
+                except Exception as e:
+                    print("Error while replacing the values.")
+                    print(key, value)
+                    raise e
+                else:
+                    for date_val in dates_between:
+                        print(f"Processing {date_val}")
+                        results = await process_date(tbl_name=BASE_TABLE,date= date_val,raw_query=final_sql.format())
+                        df = get_raw_results(results)
+                        df.to_parquet(final_dir+f"\\{sql_file}_{date_val}.parquet", index=False)
+    # print(final_sql.format(date_val=12))
 
     print("Load the data in all tables.")
 

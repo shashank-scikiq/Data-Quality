@@ -26,7 +26,7 @@ select
     SUM(CASE WHEN "Order Status" = 'Cancelled' THEN 1 ELSE 0 END) AS total_canceled_orders
 FROM "ATH_DB"."BASE_TABLE"
 where
-	date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')) = date('{date_val}')
+	extract(month from date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s'))) = extract(month from date('{date_val}'))
 GROUP by
 	date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s')),
 	"seller np name"

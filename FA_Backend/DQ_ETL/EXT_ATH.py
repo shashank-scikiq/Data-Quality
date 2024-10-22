@@ -2,9 +2,8 @@ import sys
 import aioboto3
 import asyncio
 
-import utils
 from utils import aws_region,aws_secret_access_key,aws_access_key_id
-from utils import ATH_DB, S3_LOCATION, env_file
+from utils import ATH_DB, S3_LOCATION
 from botocore.exceptions import ClientError
 
 
@@ -16,7 +15,7 @@ async def execute_athena_query(tbl_name:str, date_val:str, query:str, semaphore:
 	query: The formatted, final query that needs to be executed.
 
 	"""
-	if not aws_access_key_id or not aws_secret_access_key:
+	if not aws_access_key_id or not aws_secret_access_key or not ATH_DB or not S3_LOCATION:
 		raise Exception("AWS credentials are not set in environment variables.")
 	else:
 		print("AWS Credentials Found.")
