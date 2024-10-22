@@ -4,7 +4,7 @@ import re
 import sys
 
 try:
-	env_file=".env"
+	env_file="../.env"
 	load_dotenv(env_file)
 except Exception as e:
 	raise e
@@ -61,6 +61,7 @@ tbl_names = {
 
 SQL_FILES = os.getenv("SCRIPT_LOC")
 START_DATE = os.getenv("START_DATE")
+DUMP_LOC = os.getenv("DQ_DUMP_LOC")
 
 # Connection information
 conn_info = {
@@ -74,7 +75,4 @@ conn_info = {
 
 def check_env_vars():
 	pass
-
-
-
 
