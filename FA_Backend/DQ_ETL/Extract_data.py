@@ -3,25 +3,18 @@ import sys
 
 import re
 import pandas as pd
-from sqlalchemy import create_engine, text
-from datetime import datetime, timedelta, date
-from glob import glob
+from datetime import datetime, timedelta
 import os
 
-from utils import DQ_TBL, DIM_ORD_STAT, DIM_SELLERS, SQL_FILES
-from utils import PG_USER, PG_PASSWD, PG_HOST, PG_PORT, PG_DB, PG_SCHEMA
-from utils import START_DATE, DUMP_LOC, tbl_names
+from .utils import START_DATE, DUMP_LOC, tbl_names, SQL_FILES
 
-from EXT_ATH import process_date
+from .EXT_ATH import process_date
 
 sql_mapping = {
     "dq_main":"base_od_dq_nhm.sql",
     "dim_sellers":"base_dim_sellers.sql",
     "dim_order_status":"base_dim_order_status.sql"
 }
-
-conn_str = f"postgresql+psycopg://{PG_USER}:{PG_PASSWD}@{PG_HOST}:{PG_PORT}/{PG_DB}"
-to_drop = [DQ_TBL, DIM_ORD_STAT, DIM_SELLERS]
 
 
 def get_raw_results(results):
@@ -39,7 +32,7 @@ def list_dates(start_date, period='days'):
     date_list = []
 
     while start_date.date() <= end_date:
-        date_list.append(start_date.date().strftime(format="%Y-%m-%d"))
+        date_list.append((start_date.date()).strftime(format="%Y-%m-%d"))
 
         if period == 'days':
             start_date += timedelta(days=1)
@@ -129,7 +122,8 @@ async def extractData():
             # print(final_sql)
             for date_month in dates_between:
                 print(f"Processing {date_month}")
-                results = await process_date(tbl_name=tbl_name, date=date_month, raw_query=final_sql.format(date_val = date_month))
+                results = await process_date(tbl_name=tbl_name, date=date_month,
+                                             raw_query=final_sql.format(date_val = date_month))
                 df = get_raw_results(results)
                 df.to_parquet(final_dir + f"\\{tbl_name}_{date_month}.parquet", index=False)
 

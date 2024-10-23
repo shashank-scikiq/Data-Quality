@@ -1,10 +1,9 @@
-import sys
 import aioboto3
 import asyncio
-
-from utils import aws_region,aws_secret_access_key,aws_access_key_id
-from utils import ATH_DB, S3_LOCATION
 from botocore.exceptions import ClientError
+
+from .utils import aws_region,aws_secret_access_key,aws_access_key_id
+from .utils import ATH_DB, S3_LOCATION
 
 
 async def execute_athena_query(tbl_name:str, date_val:str, query:str, semaphore: asyncio.Semaphore, max_retries:int = 5):

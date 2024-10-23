@@ -6,18 +6,14 @@ from glob import glob
 import pandas as pd
 import re
 
-from FA_Backend.Misc.env_vars import AGG_VIEW
-from utils import PG_SCHEMA, PG_USER, tbl_names, SQL_FILES
-from sqlalchemy import create_engine, text
-from FA_Backend.Models.models import engine, meta, od_dq_base, dq_dim_sellers, dq_dim_order_status
+from pandas import DataFrame
+from FA_Backend.Models.models import od_dq_base,dq_dim_order_status, dq_dim_sellers
+from FA_Backend.Models.models import dq_agg_view, dq_agg_sum, dq_col_sum,dq_agg_order_stats
+from utils import PG_SCHEMA, PG_USER, tbl_names
+from sqlalchemy import text
+from FA_Backend.Models.models import engine, meta
 from FA_Backend.Models.models import conn_str
-
-
-file_mapping = {
-    "dq_main": od_dq_base,
-    "dim_sellers": dq_dim_sellers,
-    "dim_order_status": dq_dim_order_status
-}
+from FA_Backend.Models.models import od_dq_base
 
 
 def exec_sql(db_engine, query: str, tbl_name: list = None):
@@ -101,6 +97,20 @@ def convertDateColumns(df: pd.DataFrame) -> pd.DataFrame:
                 df[col] = df[col].astype(int)
     return df
 
+def writeDfSql(df:pd.DataFrame, tgt_table_name: str) -> None:
+    try:
+        df.to_sql(
+            name=tgt_table_name,
+            con=conn_str,
+            index=False,
+            if_exists='append',
+            schema=PG_SCHEMA
+        )
+    except Exception as e:
+        raise e
+    else:
+        print(f"Successfully written {tgt_table_name} to the Database.")
+
 
 async def dqLoadDb(src_folder: str):
     print("Checking the Source Folder.")
@@ -143,30 +153,6 @@ async def dqLoadDb(src_folder: str):
     df_dim_sellers = convertDateColumns(df_dim_sellers)
     df_ord_status = convertDateColumns(df_ord_status)
 
-    print("Loading the data in the dimension tables.")
-    df_dq_main.to_sql(
-        name="od_dq_nhm",
-        con=conn_str,
-        index=False,
-        if_exists='append',
-        schema=PG_SCHEMA
-    )
-    df_dim_sellers.to_sql(
-        name="dim_sellers",
-        con=conn_str,
-        index=False,
-        if_exists='append',
-        schema=PG_SCHEMA
-    )
-    df_ord_status.to_sql(
-        name="dim_order_status",
-        con=conn_str,
-        index=False,
-        if_exists='append',
-        schema=PG_SCHEMA
-    )
-
-
     print("Executing the rest of the tables.")
 
     print("Creating Aggregated View")
@@ -194,13 +180,6 @@ async def dqLoadDb(src_folder: str):
         null_sell_cty=('null_sell_cty', 'sum')
     ).reset_index()
     df_agg_view = convertDateColumns(df_agg_view)
-    df_agg_view.to_sql(
-        name="aggregated_view",
-        con=conn_str,
-        index=False,
-        if_exists='append',
-        schema=PG_SCHEMA
-    )
 
     print("Creating aggregated sum")
     df_agg_sum = df_agg_view[["ord_date", "seller_np", "total_orders", "total_canceled_orders"]]
@@ -226,27 +205,12 @@ async def dqLoadDb(src_folder: str):
             df_agg_view['null_sell_cty']
     )
 
-    df_agg_sum.to_sql(
-        name="aggregated_sum",
-        con=conn_str,
-        index=False,
-        if_exists='append',
-        schema=PG_SCHEMA
-    )
-
     print("Aggregated Order Status")
     df_agg_ord_stats = df_ord_status.groupby(['order_date', 'order_status', 'seller_np']).agg(
         count=('order_status', 'count')).reset_index()
     df_agg_ord_stats = df_agg_ord_stats.sort_values(by=['order_date', 'seller_np'], ascending=[False, True],
                                                     ignore_index=True)
     df_agg_ord_stats = convertDateColumns(df_agg_ord_stats)
-    df_agg_ord_stats.to_sql(
-        name="agg_order_stats",
-        con=conn_str,
-        index=False,
-        if_exists='append',
-        schema=PG_SCHEMA
-    )
 
 
     print("Column Sum")
@@ -275,14 +239,22 @@ async def dqLoadDb(src_folder: str):
 
     df_agg_col_sum = df_agg_col_sum.sort_values(by=['ord_date', 'seller_np'], ascending=[False, True])
     df_agg_col_sum = convertDateColumns(df_agg_col_sum)
-    df_agg_col_sum.to_sql(
-        name="col_sum",
-        con=conn_str,
-        index=False,
-        if_exists='append',
-        schema=PG_SCHEMA
-    )
+
+    print("Writing all the Data to Database.")
+    write_ops = [
+        (df_dq_main, od_dq_base.name),
+        (df_dim_sellers, dq_dim_sellers.name),
+        (df_ord_status, dq_dim_order_status.name),
+        (df_agg_view, dq_agg_view.name),
+        (df_agg_sum, dq_agg_sum.name),
+        (df_agg_ord_stats, dq_agg_order_stats.name),
+        (df_agg_col_sum, dq_col_sum.name)
+    ]
+
+    for df, table_name in write_ops:
+        writeDfSql(df=df, tgt_table_name=table_name)
 
 
 if __name__ == "__main__":
+    print(od_dq_base.name)
     asyncio.run(dqLoadDb("D:\\DATA_DUMP\\DATA_QUALITY\\DATA_QUALITY_2024-10-22\\"))
