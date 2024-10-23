@@ -9,7 +9,6 @@ from datetime import datetime, timedelta
 from glob import glob
 from EXT_ATH import process_date
 from dotenv import load_dotenv
-import Dir_chk as dc
 from FA_Backend.Models.models import engine, meta
 from utils import tbl_names, SQL_FILES, START_DATE, BASE_TABLE
 

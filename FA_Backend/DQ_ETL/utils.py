@@ -1,13 +1,11 @@
 import os
 from dotenv import load_dotenv
-import re
-import sys
 
-try:
+
+if not os.getenv("PG_USERNAME"):
 	env_file="../.env"
 	load_dotenv(env_file)
-except Exception as e:
-	raise e
+	print("Loading Environment Variables.")
 else:
 	print("Env loaded in utils.")
 
@@ -29,7 +27,7 @@ PG_SCHEMA = os.getenv("PG_SCHEMA")
 
 # Postgresql Table Names
 # ==================================================
-DQ_TBL = os.getenv("DQ_TABLE")
+DQ_TBL = os.getenv("DQ_TBL")
 AGG_VIEW = os.getenv("AGG_VIEW")
 AGG_SUM = os.getenv("AGG_SUM")
 COL_SUM = os.getenv("COL_SUM")
@@ -45,6 +43,7 @@ DATA_SANITY_TBL = os.getenv("DATA_SANITY_TBL")
 file_loc = os.getenv("DQ_DUMP_LOC")
 
 tbl_names = {
+	"PG_SCHEMA": os.getenv("PG_SCHEMA"),
 	"DQ_TBL" : os.getenv("DQ_TBL"),
 	"AGG_VIEW" : os.getenv("AGG_VIEW"),
 	"AGG_SUM" : os.getenv("AGG_SUM"),

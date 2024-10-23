@@ -1,8 +1,9 @@
 from sqlalchemy import create_engine, MetaData, Table, Column, Date, String, BIGINT, INT
-from DQ_ETL import utils as ev
+from FA_Backend.DQ_ETL import utils as ev
 
 print("The port is ", ev.PG_PORT)
-engine = create_engine(f"postgresql+psycopg://{ev.PG_USER}:{ev.PG_PASSWD}@{ev.PG_HOST}:{ev.PG_PORT}/{ev.PG_DB}")
+conn_str = f"postgresql+psycopg://{ev.PG_USER}:{ev.PG_PASSWD}@{ev.PG_HOST}:{ev.PG_PORT}/{ev.PG_DB}"
+engine = create_engine(conn_str)
 meta = MetaData()
 meta.reflect(bind=engine, schema=ev.PG_SCHEMA)
 
@@ -37,6 +38,26 @@ od_dq_base = Table(
     extend_existing=True
 )
 
+dq_dim_order_status = Table(
+    ev.DIM_ORD_STAT,
+    meta,
+    Column("order_date", Date, nullable=False),
+    Column("seller_np", String(255), nullable=True),
+    Column("order_status", String(255), nullable=True),
+    Column("cancellation_code", String(255), nullable=True),
+    schema=ev.PG_SCHEMA,
+    extend_existing=True
+)
+
+dq_dim_sellers = Table(
+    ev.DIM_SELLERS,
+    meta,
+    Column("order_date", Date, nullable=False),
+    Column("seller_np", String(255), nullable=False),
+    schema=ev.PG_SCHEMA,
+    extend_existing=True
+)
+
 dq_agg_view = Table(
     ev.AGG_VIEW,
     meta,
@@ -50,7 +71,6 @@ dq_agg_view = Table(
     Column("null_itm_fulfilment_id", BIGINT, nullable=False),
     Column("null_del_pc", BIGINT, nullable=False),
     Column("null_created_date_time", BIGINT, nullable=False),
-    Column("null_domain", BIGINT, nullable=False),
     Column("null_del_cty", BIGINT, nullable=False),
     Column("null_cans_code", BIGINT, nullable=False),
     Column("null_cans_dt_time", BIGINT, nullable=False),
@@ -107,26 +127,6 @@ dq_col_sum = Table(
     Column("null_net_ord_id", BIGINT, nullable=False),
     Column("null_sell_cty", BIGINT, nullable=False),
     Column("null_del_cty", BIGINT, nullable=False),
-    schema=ev.PG_SCHEMA,
-    extend_existing=True
-)
-
-dq_dim_order_status = Table(
-    ev.DIM_ORD_STAT,
-    meta,
-    Column("order_date", Date, nullable=False),
-    Column("seller_np", String(255), nullable=True),
-    Column("order_status", String(255), nullable=True),
-    Column("cancellation_code", String(255), nullable=True),
-    schema=ev.PG_SCHEMA,
-    extend_existing=True
-)
-
-dq_dim_sellers = Table(
-    ev.DIM_SELLERS,
-    meta,
-    Column("order_date", Date, nullable=False),
-    Column("seller_np", String(255), nullable=False),
     schema=ev.PG_SCHEMA,
     extend_existing=True
 )
