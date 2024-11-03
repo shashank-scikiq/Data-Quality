@@ -6,9 +6,9 @@ import pandas as pd
 from datetime import datetime, timedelta
 import os
 
-from .utils import START_DATE, DUMP_LOC, tbl_names, SQL_FILES
+from utils import START_DATE, DUMP_LOC, tbl_names, SQL_FILES
 
-from .EXT_ATH import process_date
+from EXT_ATH import process_date
 
 sql_mapping = {
     "dq_main":"base_od_dq_nhm.sql",

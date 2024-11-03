@@ -1,10 +1,15 @@
-from .Extract_data import extractData
-from .Load_data import dqLoadDb
+import os
 
+from FA_Backend.Models.models import od_dq_base
+from Extract_data import extractData
+from Load_data import dqLoadDb
+import asyncio
 
-if __name__ == "__main__":
-    asyncio.run(extractData())
 
 def etlMain():
     print(od_dq_base.name)
-    asyncio.run(dqLoadDb("D:\\DATA_DUMP\\DATA_QUALITY\\DATA_QUALITY_2024-10-22\\"))
+    files_loc = os.getenv("DQ_DUMP_LOC")
+    asyncio.run(dqLoadDb(files_loc))
+
+if __name__ == "__main__":
+    asyncio.run(extractData())
