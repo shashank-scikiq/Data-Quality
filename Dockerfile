@@ -6,7 +6,7 @@ WORKDIR /app
 WORKDIR /app/Webapp
 
 COPY FA_BACKEND/ /app/Webapp/
-COPY requirements.txt /app/Webapp/
+COPY DQ_FrontEnd/requirements.txt /app/Webapp/
 
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt

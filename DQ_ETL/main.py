@@ -17,7 +17,7 @@ async def etlMain():
 	print("Extracting the Data from AWS Athena.")
 
 	try:
-		files_loc = asyncio.run(dataDump())
+		files_loc = await dataDump()
 	except Exception as e:
 		raise e
 	else:

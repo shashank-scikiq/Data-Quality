@@ -2,8 +2,8 @@ services:
   webapp_83:
     container_name: webapp_83
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: DQ_FrontEnd
+      dockerfile: DQ_FrontEnd/Dockerfile
     image: webapp_dev:version_2.0.0
     ports:
       - "8083:8001"
