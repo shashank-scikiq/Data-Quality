@@ -2,18 +2,22 @@ import asyncio
 import sys
 import os
 from glob import glob
-
 import pandas as pd
 import re
-
-from pandas import DataFrame
-from FA_Backend.Models.models import od_dq_base,dq_dim_order_status, dq_dim_sellers
-from FA_Backend.Models.models import dq_agg_view, dq_agg_sum, dq_col_sum,dq_agg_order_stats
-from Toolkit import PG_SCHEMA, PG_USER, tbl_names
 from sqlalchemy import text
-from FA_Backend.Models.models import engine, meta
-from FA_Backend.Models.models import conn_str
-from FA_Backend.Models.models import od_dq_base
+
+import pathlib
+
+current_path = pathlib.Path(__file__).resolve()
+project_root = current_path.parent.parent
+sys.path.append(str(project_root))
+
+from backend.models import od_dq_base,dq_dim_order_status, dq_dim_sellers
+from backend.models import dq_agg_view, dq_agg_sum, dq_col_sum,dq_agg_order_stats
+from Toolkit.utils import PG_SCHEMA, PG_USER, tbl_names
+from backend.models import engine, meta
+from backend.models import conn_str
+from backend.models import od_dq_base
 
 
 def exec_sql(db_engine, query: str, tbl_name: list = None):
@@ -156,30 +160,37 @@ async def dqLoadDb(src_folder: str):
     print("Executing the rest of the tables.")
 
     print("Creating Aggregated View")
-    df_agg_view = df_dq_main.groupby(['ord_date', 'seller_np']).agg(
-        total_orders=('total_orders', 'sum'),
-        total_canceled_orders=('total_canceled_orders', 'sum'),
-        null_fulfilment_id=('null_fulfilment_id', 'sum'),
-        null_net_tran_id=('null_net_tran_id', 'sum'),
-        null_qty=('null_qty', 'sum'),
-        null_itm_fulfilment_id=('null_itm_fulfilment_id', 'sum'),
-        null_del_pc=('null_del_pc', 'sum'),
-        null_created_date_time=('null_created_date_time', 'sum'),
-        null_del_cty=('null_del_cty', 'sum'),
-        null_cans_code=('null_cans_code', 'sum'),
-        null_cans_dt_time=('null_cans_dt_time', 'sum'),
-        null_ord_stats=('null_ord_stats', 'sum'),
-        null_fulfil_status=('null_fulfil_status', 'sum'),
-        null_itm_cat=('null_itm_cat', 'sum'),
-        null_cat_cons=('null_cat_cons', 'sum'),
-        null_sell_pincode=('null_sell_pincode', 'sum'),
-        null_prov_id=('null_prov_id', 'sum'),
-        null_itm_id=('null_itm_id', 'sum'),
-        null_sell_np=('null_sell_np', 'sum'),
-        null_net_ord_id=('null_net_ord_id', 'sum'),
-        null_sell_cty=('null_sell_cty', 'sum')
-    ).reset_index()
-    df_agg_view = convertDateColumns(df_agg_view)
+    try:
+        df_agg_view = df_dq_main.groupby(['ord_date', 'seller_np']).agg(
+            total_orders=('total_orders', 'sum'),
+            total_canceled_orders=('total_canceled_orders', 'sum'),
+            null_fulfilment_id=('null_fulfilment_id', 'sum'),
+            null_net_tran_id=('null_net_tran_id', 'sum'),
+            null_qty=('null_qty', 'sum'),
+            null_itm_fulfilment_id=('null_itm_fulfilment_id', 'sum'),
+            null_del_pc=('null_del_pc', 'sum'),
+            null_created_date_time=('null_created_date_time', 'sum'),
+            null_del_cty=('null_del_cty', 'sum'),
+            null_cans_code=('null_cans_code', 'sum'),
+            null_cans_dt_time=('null_cans_dt_time', 'sum'),
+            null_ord_stats=('null_ord_stats', 'sum'),
+            null_fulfil_status=('null_fulfil_status', 'sum'),
+            null_itm_cat=('null_itm_cat', 'sum'),
+            null_cat_cons=('null_cat_cons', 'sum'),
+            null_sell_pincode=('null_sell_pincode', 'sum'),
+            null_prov_id=('null_prov_id', 'sum'),
+            null_itm_id=('null_itm_id', 'sum'),
+            null_sell_np=('null_sell_np', 'sum'),
+            null_net_ord_id=('null_net_ord_id', 'sum'),
+            null_sell_cty=('null_sell_cty', 'sum')
+        ).reset_index()
+    except Exception as e:
+        print(df_dq_main.columns)
+        print(df_dq_main.shape)
+        raise e
+    else:
+        df_agg_view = convertDateColumns(df_agg_view)
+
 
     print("Creating aggregated sum")
     df_agg_sum = df_agg_view[["ord_date", "seller_np", "total_orders", "total_canceled_orders"]]

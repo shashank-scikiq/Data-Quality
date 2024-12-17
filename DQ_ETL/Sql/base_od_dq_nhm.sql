@@ -24,7 +24,7 @@ select
     SUM(CASE WHEN "seller city" IS NULL THEN 1 ELSE 0 END) AS null_sell_cty,
     count(*) as total_orders,
     SUM(CASE WHEN "Order Status" = 'Cancelled' THEN 1 ELSE 0 END) AS total_canceled_orders
-FROM "ATH_DB"."BASE_TABLE"
+FROM "ATH_DB"."BASE_TBL"
 where
 	extract(month from date(date_parse("O_Created Date & Time", '%Y-%m-%dT%H:%i:%s'))) = extract(month from date('{date_val}'))
 GROUP by

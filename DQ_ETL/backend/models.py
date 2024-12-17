@@ -1,12 +1,14 @@
 from sqlalchemy import create_engine, MetaData, Table, Column, Date, String, BIGINT, INT
-
+import pathlib
 import sys
-sys.path.append("D:/Work/git/DQ_New/FA_Backend/")
 
-for paths in sys.path:
-    print(paths)
+current_path = pathlib.Path(__file__).resolve()
+project_root = current_path.parent.parent
+sys.path.append(str(project_root))
 
-from FA_Backend.DQ_ETL import utils as ev
+# print(project_root)
+
+from Toolkit import utils as ev
 
 print("The port is ", ev.PG_PORT)
 conn_str = f"postgresql+psycopg://{ev.PG_USER}:{ev.PG_PASSWD}@{ev.PG_HOST}:{ev.PG_PORT}/{ev.PG_DB}"

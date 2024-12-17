@@ -5,10 +5,15 @@ import re
 import pandas as pd
 from datetime import datetime, timedelta
 import os
+import pathlib
 
-from Toolkit import START_DATE, DUMP_LOC, tbl_names, SQL_FILES
+current_path = pathlib.Path(__file__).resolve()
+project_root = current_path.parent.parent
+sys.path.append(str(project_root))
 
-from EXT_ATH import process_date
+from Toolkit.utils import START_DATE, DUMP_LOC, tbl_names, SQL_FILES
+
+from .EXT_ATH import process_date
 
 sql_mapping = {
     "dq_main":"base_od_dq_nhm.sql",
@@ -88,8 +93,7 @@ def check_create_folders(data_loc: str):
         print(f"{fold_curr_dt} already exists for processing.")
         return fold_curr_dt
     else:
-        print("Creating folder.")
-        print(fold_curr_dt)
+        print(f"Creating folder {fold_curr_dt}.")
         try:
             os.mkdir(fold_curr_dt)
         except Exception as e:
@@ -101,7 +105,6 @@ async def dataDump():
     print("Checking the Target Folder.")
     print(DUMP_LOC)
     final_dir = check_create_folders(DUMP_LOC)
-    print(final_dir)
 
     print("Starting the Extract Process.")
     dates_between = list_dates(START_DATE, period="months")
@@ -126,6 +129,7 @@ async def dataDump():
                                              raw_query=final_sql.format(date_val = date_month))
                 df = get_raw_results(results)
                 df.to_parquet(final_dir + f"\\{tbl_name}_{date_month}.parquet", index=False)
+    return final_dir
 
 
 if __name__ == "__main__":
