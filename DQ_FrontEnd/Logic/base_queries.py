@@ -1,12 +1,8 @@
 import pandas as pd
-
-from typing import Tuple, Any
 from sqlalchemy import Select, func, and_, or_, desc, asc
 from datetime import date, datetime
 import os
 import sys
-
-from sqlalchemy import create_engine
 
 sys.path.insert(0, "../Models")
 
