@@ -128,7 +128,7 @@ async def dataDump():
                 results = await process_date(tbl_name=tbl_name, date=date_month,
                                              raw_query=final_sql.format(date_val = date_month))
                 df = get_raw_results(results)
-                df.to_parquet(final_dir + f"\\{tbl_name}_{date_month}.parquet", index=False)
+                df.to_parquet(final_dir + f"/{tbl_name}_{date_month}.parquet", index=False)
     return final_dir
 
 
