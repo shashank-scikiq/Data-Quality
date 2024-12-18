@@ -1,18 +1,18 @@
 import asyncio
-import sys
 import os
-from glob import glob
-import pandas as pd
-import re
-from sqlalchemy import text
-
 import pathlib
+import re
+import sys
+from glob import glob
+
+import pandas as pd
+from sqlalchemy import text
 
 current_path = pathlib.Path(__file__).resolve()
 project_root = current_path.parent.parent
 sys.path.append(str(project_root))
 
-from backend.models import od_dq_base,dq_dim_order_status, dq_dim_sellers
+from backend.models import dq_dim_order_status, dq_dim_sellers
 from backend.models import dq_agg_view, dq_agg_sum, dq_col_sum,dq_agg_order_stats
 from Toolkit.utils import PG_SCHEMA, PG_USER, tbl_names
 from backend.models import engine, meta
