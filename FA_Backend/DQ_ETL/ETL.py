@@ -1,4 +1,6 @@
 import os
+import sys
+sys.path.append("/home/sraj/git/Data-Quality/FA_Backend/")
 
 from FA_Backend.Models.models import od_dq_base
 from Extract_data import extractData
@@ -10,6 +12,7 @@ def etlMain():
     print(od_dq_base.name)
     files_loc = os.getenv("DQ_DUMP_LOC")
     asyncio.run(dqLoadDb(files_loc))
+
 
 if __name__ == "__main__":
     asyncio.run(extractData())

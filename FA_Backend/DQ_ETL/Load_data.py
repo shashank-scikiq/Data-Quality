@@ -3,6 +3,9 @@ import sys
 import os
 from glob import glob
 
+import sys
+sys.path.append("/home/sraj/git/Data-Quality/FA_Backend/")
+
 import pandas as pd
 import re
 

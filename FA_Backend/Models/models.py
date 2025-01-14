@@ -1,4 +1,8 @@
 from sqlalchemy import create_engine, MetaData, Table, Column, Date, String, BIGINT, INT
+
+import sys
+sys.path.append("/home/sraj/git/Data-Quality/FA_Backend/")
+
 from FA_Backend.DQ_ETL import utils as ev
 
 print("The port is ", ev.PG_PORT)

@@ -2,6 +2,9 @@ import aioboto3
 import asyncio
 from botocore.exceptions import ClientError
 
+import sys
+sys.path.append("/home/sraj/git/Data-Quality/FA_Backend/")
+
 from utils import aws_region,aws_secret_access_key,aws_access_key_id
 from utils import ATH_DB, S3_LOCATION
 
